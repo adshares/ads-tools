@@ -1,5 +1,7 @@
 # ADS Toolbox
 
+Basic tools for maintenance an ADS blockchain node.
+
 ## Getting Started
 
 ### Installing
@@ -30,7 +32,7 @@ cd ads-tools/scripts
 
 ## Usage
 
-### ASD Monitor
+### ADS Monitor
 
 ```
 ads-monitor [options] <command>
@@ -65,13 +67,13 @@ We use [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for versioning
 
 ## Authors
 
-* **[Adam Włodarkiewicz](https://github.com/awlodarkiewicz)** - _programmer_
-* **[Maciej Pilarczyk](https://github.com/m-pilarczyk)** - _programmer_
+* **Adam Włodarkiewicz** - _programmer_ - [awlodarkiewicz](https://github.com/awlodarkiewicz)
+* **Maciej Pilarczyk** - _programmer_ - [m-pilarczyk](https://github.com/m-pilarczyk)
 
 See also the list of [contributors](https://github.com/adshares/ads-tools/graphs/contributors) who participated in this 
 project.
 
-## License
+## License ![CC BY-ND](https://mirrors.creativecommons.org/presskit/buttons/80x15/svg/by-nd.svg "CC BY-ND 4.0")
 
 This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 International License. To view a copy of 
 this license, visit http://creativecommons.org/licenses/by-nd/4.0/ or send a letter to Creative Commons, PO Box 1866, 
