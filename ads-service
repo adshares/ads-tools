@@ -329,8 +329,5 @@ if __name__ == '__main__':
             action_signal(args.working_dir, signal.SIGTERM, 'stop')
     elif args.action == 'restart':
         action_signal(args.working_dir, signal.SIGUSR1, 'restart')
-    # elif args.action == 'clean':
-    #     action_signal(args.working_dir, signal.SIGKILL, 'forced stop for cleaning')
-    #     action_clean(args.working_dir)
     elif args.action == 'configure':
         action_configure(args)
