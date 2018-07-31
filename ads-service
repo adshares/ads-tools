@@ -165,12 +165,12 @@ def configure(config, genesis_data, node_ident_genesis=None):
         print("No nodes to configure.")
         sys.exit(1)
 
-    if not os.path.exists(config.data_dir):
-        os.makedirs(config.data_dir)
+    if not os.path.exists(config.working_dir):
+        os.makedirs(config.working_dir)
 
-    genesis_data.save(os.path.join(config.data_dir, 'genesis.json'))
+    genesis_data.save(os.path.join(config.working_dir, 'genesis.json'))
 
-    private_key_dir = os.path.join(config.data_dir, 'key')
+    private_key_dir = os.path.join(config.working_dir, 'key')
 
     if not os.path.exists(private_key_dir):
         os.makedirs(private_key_dir)
@@ -187,7 +187,7 @@ def configure(config, genesis_data, node_ident_genesis=None):
              'offi': 6511,
              'addr': config.interface}
 
-    filepath = os.path.join(config.data_dir, 'options.cfg')
+    filepath = os.path.join(config.working_dir, 'options.cfg')
 
     save_config(filepath, nconf)
     print("{0} Saved options to: {1}".format(node['_nid'], filepath))
@@ -206,22 +206,22 @@ def get_nodeid_from_genesis(genesis_data, private_key):
     return genesis_data.node_identifier_from_public_key(pub_key)
 
 
-def action_signal(data_dir, chosen_signal, name):
+def action_signal(working_dir, chosen_signal, name):
     """
     Stop the node by sending a SIGKILL to the process. Process ID is read from the pid file.
 
-    :param data_dir: Path to directory holding the pid file.
+    :param working_dir: Path to directory holding the pid file.
     :return:
     """
-    pid = get_daemon_pid(data_dir)
+    pid = get_daemon_pid(working_dir)
     if not pid:
         print("Daemon not running.")
     else:
         try:
             os.kill(pid, chosen_signal)
-            print("ADS node {0} {1} was successful.".format(data_dir, name))
+            print("ADS node {0} {1} was successful.".format(working_dir, name))
         except OSError:
-            print("ADS node {0} {1} has failed.".format(data_dir, name))
+            print("ADS node {0} {1} has failed.".format(working_dir, name))
 
 
 def action_configure(args):
@@ -245,35 +245,35 @@ def action_configure(args):
     configure(args, genesis_data, node_ident_genesis)
 
 
-def get_daemon_pid(data_dir):
+def get_daemon_pid(working_dir):
     try:
-        pid = subprocess.check_output(['pgrep', '-f', '{0}.*--work-dir={1}'.format(DAEMON_BIN_NAME, data_dir)])
+        pid = subprocess.check_output(['pgrep', '-f', '{0}.*--work-dir={1}'.format(DAEMON_BIN_NAME, working_dir)])
         return int(pid)
     except subprocess.CalledProcessError:
         return None
 
 
-def action_start(data_dir):
+def action_start(working_dir):
     """
     Start a background node process. Modifies the local genesis file by setting the `genesis_time`.
     On success, creates a pid file with the process number.
 
-    :param args.data_dir: Path to node configuration directory.
+    :param args.working_dir: Path to node configuration directory.
     :param genesis_time: Genesis time of the network.
     :param init: Set it to true, if this is the first node of the network.
     :return:
     """
 
-    genesis_path = os.path.join(data_dir, 'genesis.json')
+    genesis_path = os.path.join(working_dir, 'genesis.json')
 
     cmd = [
         DAEMON_BIN_NAME,
         '--genesis={0}'.format(genesis_path),
-        '--work-dir={0}'.format(data_dir)
+        '--work-dir={0}'.format(working_dir)
     ]
 
-    stdout = open(os.path.join(data_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
-    stderr = open(os.path.join(data_dir, '{0}.error.log'.format(DAEMON_BIN_NAME)), 'w')
+    stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
+    stderr = open(os.path.join(working_dir, '{0}.error.log'.format(DAEMON_BIN_NAME)), 'w')
 
     proc = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
 
@@ -284,52 +284,53 @@ def action_start(data_dir):
         print("Server not started.")
         sys.exit(1)
 
-    print("ADS node {0} started.".format(data_dir))
+    print("ADS node {0} started.".format(working_dir))
 
 
-def action_clean(data_dir):
+def action_clean(working_dir):
     """
     Remove and recreate the whole ADS data directory.
 
-    :param data_dir: Directory to clean up.
+    :param working_dir: Directory to clean up.
     :return:
     """
-    if os.path.exists(data_dir):
-        shutil.rmtree(data_dir)
-        os.mkdir(data_dir)
+    if os.path.exists(working_dir):
+        shutil.rmtree(working_dir)
+        os.mkdir(working_dir)
         print("ADS node configuration removed.")
     else:
-        print("{0} doesn't exist".format(data_dir))
+        print("{0} doesn't exist".format(working_dir))
 
 
 if __name__ == '__main__':
 
     validate_platform()
-    
-    genesis_data = GenesisFile(
-        'https://raw.githubusercontent.com/adshares/ads-tests/master/qa/config/genesis/genesis-20x20-rf.json')
 
     # Support for sudo
-    default_datapath = os.path.join(os.path.expanduser("~" + os.environ["USER"]), ".adsd")
+    default_working_dir = os.path.join(os.path.expanduser("~" + os.environ["USER"]), ".adsd")
+    default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
 
-    parser = argparse.ArgumentParser(description='Tools for ADS nodes.')
-    parser.add_argument('action', choices=['start', 'stop', 'configure', 'clean', 'restart'])
-    parser.add_argument('-f', '--force-stop', action='store_true')
-    parser.add_argument('--data-dir', default=default_datapath, help='Writeable working directory.')
+    parser = argparse.ArgumentParser(description='Maintenance service for the ADS network.')
+    parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure'])
+    parser.add_argument('-w', '--working-dir', default=default_working_dir, help='working directory (default "{0}")'.format(default_working_dir))
+    parser.add_argument('-g', '--genesis-url', default=default_genesis_url, help='URL to genesis file (default official genesis)')
+    parser.add_argument('-f', '--force', action='store_true')
 
     args = parser.parse_args()
 
+    genesis_data = GenesisFile(args.genesis_url)
+
     if args.action == 'start':
-        action_start(args.data_dir)
+        action_start(args.working_dir)
     elif args.action == 'stop':
         if args.force_stop:
-            action_signal(args.data_dir, signal.SIGKILL, 'forced stop')
+            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
         else:
-            action_signal(args.data_dir, signal.SIGTERM, 'stop')
+            action_signal(args.working_dir, signal.SIGTERM, 'stop')
     elif args.action == 'restart':
-        action_signal(args.data_dir, signal.SIGUSR1, 'restart')
-    elif args.action == 'clean':
-        action_signal(args.data_dir, signal.SIGKILL, 'forced stop for cleaning')
-        action_clean(args.data_dir)
+        action_signal(args.working_dir, signal.SIGUSR1, 'restart')
+    # elif args.action == 'clean':
+    #     action_signal(args.working_dir, signal.SIGKILL, 'forced stop for cleaning')
+    #     action_clean(args.working_dir)
     elif args.action == 'configure':
         action_configure(args)
