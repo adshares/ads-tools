@@ -179,10 +179,13 @@ show_error() {
 
 # Display help message
 show_help() {
-    echo "Monitor ADS network."
+    echo "Monitor the ADS network."
     echo
     show_usage
 }
+
+default_working_dir=~/.adsd
+default_stderr="error.log"
 
 # Display usage message
 show_usage() {
@@ -197,14 +200,12 @@ show_usage() {
     echo "  conns                    the number of currently open connections"
     echo
     echo "Options"
-    echo "  -w, --working-dir <DIR>  working directory"
-    echo "  -e, --stderr-path <FILE> path to STDERR"
+    echo "  -w, --working-dir <DIR>  working directory (default '${default_working_dir}')"
+    echo "  -e, --stderr-path <FILE> absolute path to STDERR (default '${default_stderr}' in working directory)"
     echo "  -v, --verbose            verbose mode"
     echo "  -c, --continuous         continuous monitoring"
     echo "  -h, --help               display this help and exit"
 }
-
-working_dir=~/.ads
 
 # Parsing options
 PARAMS=""
@@ -265,13 +266,18 @@ if [ -n "$2" ]; then
 fi
 
 # Checking paths and dirs
+
+if [ -z "$working_dir" ]; then
+    working_dir=${default_working_dir}
+fi
+
 if [ ! -d ${working_dir} ]; then
     show_error "Cannot find working directory \"$working_dir\""
 fi
 working_dir=`realpath ${working_dir}`
 
 if [ -z "$stderr_path" ]; then
-    stderr_path="$working_dir/stderr"
+    stderr_path="${working_dir}/${default_stderr}"
 fi
 
 if [ ! -f ${stderr_path} ]; then
