@@ -268,9 +268,7 @@ def action_start(working_dir):
     Start a background node process. Modifies the local genesis file by setting the `genesis_time`.
     On success, creates a pid file with the process number.
 
-    :param args.working_dir: Path to node configuration directory.
-    :param genesis_time: Genesis time of the network.
-    :param init: Set it to true, if this is the first node of the network.
+    :param working_dir: Path to node configuration directory.
     :return:
     """
 
