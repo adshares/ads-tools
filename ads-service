@@ -361,4 +361,11 @@ if __name__ == '__main__':
         action_signal(args.working_dir, signal.SIGUSR1, 'restart')
 
     elif args.action == 'configure':
+
+        if daemon_running and not args.force:
+            print "adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(bin_path)
+            sys.exit(1)
+        elif daemon_running and args.force:
+            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
+
         action_configure(args)
