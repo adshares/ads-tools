@@ -333,7 +333,15 @@ if __name__ == '__main__':
     daemon_running = get_daemon_pid()
 
     if args.action == 'start':
+
+        if daemon_running and args.force:
+            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
+        elif daemon_running and not args.force:
+             print "adsd already started. To force kill and start, use `{0} -f start`.".format(bin_path)
+             sys.exit(1)
+
         action_start(args.working_dir)
+
     elif args.action == 'stop':
         if args.force_stop:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
