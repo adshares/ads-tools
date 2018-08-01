@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import argparse
 import getpass
 import json
@@ -209,14 +211,16 @@ def get_nodeid_from_genesis(genesis_data, private_key):
 
 def action_signal(working_dir, chosen_signal, name):
     """
-    Stop the node by sending a SIGKILL to the process. Process ID is read from the pid file.
+    Send a signal to daemon
 
     :param working_dir: Path to directory holding the pid file.
+    :param chosen_signal: Signal sent to daemon.
+    :param name: Name of action.
     :return:
     """
     pid = get_daemon_pid(working_dir)
     if not pid:
-        print("Daemon not running.")
+        print("{0} not running in {1}.".format(DAEMON_BIN_NAME, working_dir))
     else:
         try:
             os.kill(pid, chosen_signal)
@@ -225,30 +229,30 @@ def action_signal(working_dir, chosen_signal, name):
             print("ADS node {0} {1} has failed.".format(working_dir, name))
 
 
-def action_configure(args):
+def action_configure(conf_args):
     try:
-        genesis_data = GenesisFile(args.genesis_url)
+        genesis_data = GenesisFile(conf_args.genesis_url)
     except (IOError, HTTPError) as e:
-        print "Unable to retrieve genesis file ({0}).".format(e)
+        print("Unable to retrieve genesis file ({0}).".format(e))
         sys.exit(1)
 
-    args.private_key = getpass.getpass("Node's private key: ")
-    print "Default values are in []. Press enter to choose them."
+    conf_args.private_key = getpass.getpass("Node's private key: ")
+    print("Default values are in []. Press enter to choose them.")
 
-    node_ident_genesis = get_nodeid_from_genesis(genesis_data, args.private_key)
+    node_ident_genesis = get_nodeid_from_genesis(genesis_data, conf_args.private_key)
     if node_ident_genesis:
-        print "Public key for your private key found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis)
-        args.node = raw_input("Node identifier [{0}]: ".format(node_ident_genesis))
-        if not args.node:
-            args.node = node_ident_genesis
+        print("Public key for your private key found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
+        conf_args.node = raw_input("Node identifier [{0}]: ".format(node_ident_genesis))
+        if not conf_args.node:
+            conf_args.node = node_ident_genesis
     else:
-        args.node = raw_input("Node identifier: ")
+        conf_args.node = raw_input("Node identifier: ")
 
-    args.interface = raw_input("Node interface [{0}]): ".format(get_my_ip()))
-    if not args.interface:
-        args.interface = get_my_ip()
+    conf_args.interface = raw_input("Node interface [{0}]): ".format(get_my_ip()))
+    if not conf_args.interface:
+        conf_args.interface = get_my_ip()
 
-    configure(args, genesis_data, node_ident_genesis)
+    configure(conf_args, genesis_data, node_ident_genesis)
 
 
 def get_daemon_pid(working_dir=None):
@@ -277,6 +281,10 @@ def action_start(working_dir):
     :param working_dir: Path to node configuration directory.
     :return:
     """
+
+    if not os.path.exists(working_dir):
+        print
+        sys.exit(1)
 
     genesis_path = os.path.join(working_dir, 'genesis.json')
 
@@ -340,15 +348,15 @@ if __name__ == '__main__':
         if daemon_running and args.force:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
         elif daemon_running and not args.force:
-             print "adsd already started. To force kill and start, use `{0} -f start`.".format(bin_path)
-             sys.exit(1)
+            print("adsd already started. To force kill and start, use `{0} -f start`.".format(bin_path))
+            sys.exit(1)
 
         action_start(args.working_dir)
 
     elif args.action == 'stop':
 
         if not daemon_running:
-            print "adsd not running. To start, use `{0} start`.".format(bin_path)
+            print("adsd not running. To start, use `{0} start`.".format(bin_path))
             sys.exit(0)
         if args.force:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
@@ -358,7 +366,7 @@ if __name__ == '__main__':
     elif args.action == 'restart':
 
         if not daemon_running:
-            print "adsd not running. To start, use `{0} start`.".format(bin_path)
+            print("adsd not running. To start, use `{0} start`.".format(bin_path))
             sys.exit(1)
 
         action_signal(args.working_dir, signal.SIGUSR1, 'restart')
@@ -366,7 +374,7 @@ if __name__ == '__main__':
     elif args.action == 'configure':
 
         if daemon_running and not args.force:
-            print "adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(bin_path)
+            print("adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(bin_path))
             sys.exit(1)
         elif daemon_running and args.force:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
