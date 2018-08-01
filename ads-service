@@ -312,8 +312,6 @@ def action_clean(working_dir):
 
 if __name__ == '__main__':
 
-    validate_platform()
-
     # Support for sudo
     default_working_dir = os.path.join(os.path.expanduser("~" + os.environ["USER"]), ".adsd")
     default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
@@ -325,6 +323,8 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--force', action='store_true')
 
     args = parser.parse_args()
+
+    validate_platform()
 
     genesis_data = GenesisFile(args.genesis_url)
 
