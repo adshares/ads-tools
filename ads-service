@@ -22,6 +22,17 @@ except ImportError:
 DAEMON_BIN_NAME = 'adsd'
 
 
+def eprint(*args, **kwargs):
+    """
+    https://stackoverflow.com/a/14981125
+
+    :param args: print args
+    :param kwargs: print kwargs
+    :return:
+    """
+    print(*args, file=sys.stderr, **kwargs)
+
+
 def save_config(filepath, settings):
     """
     Save config in ADS format:
@@ -92,18 +103,18 @@ def validate_platform(verbose=False):
 
     # Platform check, linux or windows, or something else
     if not sys.platform.startswith('linux'):
-        print("This platform is not supported for this configuration script.")
-        print("I need 'linux', but this is '{0}'. See manual configuration instructions.".format(sys.platform))
+        eprint("This platform is not supported for this configuration script.")
+        eprint("I need 'linux', but this is '{0}'. See manual configuration instructions.".format(sys.platform))
         sys.exit(1)
 
     # Architecture check
     try:
         uname_data = os.uname()
         if uname_data[4] != 'x86_64':
-            print("This architecture is not supported. I need *x86_64*.")
+            eprint("This architecture is not supported. I need *x86_64*.")
             sys.exit(1)
     except AttributeError:
-        print("Can't detect the architecture. I need a *nix system to do that.")
+        eprint("Can't detect the architecture. I need a *nix system to do that.")
         sys.exit(1)
 
     if verbose:
@@ -135,7 +146,7 @@ def prepare_node_configuration(node_id, genesis_data, private_key, node_ident_ge
         print("Found matching public key in genesis.")
         # Check if private key matches public key in the chosen identifier
         if node_id and node_ident_genesis != node_id:
-            print("Invalid private key for node: {0}".format(node_id))
+            eprint("Invalid private key for node: {0}".format(node_id))
             sys.exit(1)
 
         # Node id taken from matching public key
@@ -147,7 +158,7 @@ def prepare_node_configuration(node_id, genesis_data, private_key, node_ident_ge
         print("No matching public key found in genesis file.")
         # New node (not in genesis)
         if not node_id:
-            print("No node number provided to set up new node. Did you forget --node?")
+            eprint("No node number provided to set up new node. Did you forget --node?")
             sys.exit(1)
 
         node = {'_nid': node_id, '_secret': private_key, 'accounts': []}
@@ -233,7 +244,7 @@ def action_configure(conf_args):
     try:
         genesis_data = GenesisFile(conf_args.genesis_url)
     except (IOError, HTTPError) as e:
-        print("Unable to retrieve genesis file ({0}).".format(e))
+        eprint("Unable to retrieve genesis file ({0}).".format(e))
         sys.exit(1)
 
     conf_args.private_key = getpass.getpass("Node's private key: ")
@@ -303,7 +314,7 @@ def action_start(working_dir):
         os.kill(proc.pid, 0)
         print("Process started: ", time.strftime("%Z - %Y/%m/%d, %H:%M:%S", time.localtime(time.time())))
     except OSError:
-        print("Server not started.")
+        eprint("Server not started.")
         sys.exit(1)
 
     print("ADS node {0} started.".format(working_dir))
@@ -348,7 +359,7 @@ if __name__ == '__main__':
         if daemon_running and args.force:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
         elif daemon_running and not args.force:
-            print("adsd already started. To force kill and start, use `{0} -f start`.".format(bin_path))
+            eprint("adsd already started. To force kill and start, use `{0} -f start`.".format(bin_path))
             sys.exit(1)
 
         action_start(args.working_dir)
@@ -366,7 +377,7 @@ if __name__ == '__main__':
     elif args.action == 'restart':
 
         if not daemon_running:
-            print("adsd not running. To start, use `{0} start`.".format(bin_path))
+            eprint("adsd not running. To start, use `{0} start`.".format(bin_path))
             sys.exit(1)
 
         action_signal(args.working_dir, signal.SIGUSR1, 'restart')
@@ -374,7 +385,7 @@ if __name__ == '__main__':
     elif args.action == 'configure':
 
         if daemon_running and not args.force:
-            print("adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(bin_path))
+            eprint("adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(bin_path))
             sys.exit(1)
         elif daemon_running and args.force:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
