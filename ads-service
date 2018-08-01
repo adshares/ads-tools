@@ -12,9 +12,10 @@ import sys
 import time
 
 try:
-    from urllib2 import urlopen
+    from urllib2 import urlopen, HTTPError
 except ImportError:
     from urllib.request import urlopen
+    from urllib.error import HTTPError
 
 DAEMON_BIN_NAME = 'adsd'
 
@@ -225,7 +226,12 @@ def action_signal(working_dir, chosen_signal, name):
 
 
 def action_configure(args):
-    
+    try:
+        genesis_data = GenesisFile(args.genesis_url)
+    except (IOError, HTTPError) as e:
+        print "Unable to retrieve genesis file ({0}).".format(e)
+        sys.exit(1)
+
     args.private_key = getpass.getpass("Node's private key: ")
     print "Default values are in []. Press enter to choose them."
 
@@ -326,10 +332,7 @@ if __name__ == '__main__':
 
     validate_platform()
 
-    genesis_data = GenesisFile(args.genesis_url)
-
     bin_path = sys.argv[0]
-
     daemon_running = get_daemon_pid()
 
     if args.action == 'start':
