@@ -245,7 +245,13 @@ def action_configure(args):
     configure(args, genesis_data, node_ident_genesis)
 
 
-def get_daemon_pid(working_dir):
+def get_daemon_pid(working_dir=None):
+    """
+    Finds running adsd daemons.
+
+    :param working_dir: Find specific daemon (optional)
+    :return: Process identifier (pid) or None if no adsd daemons are running.
+    """
     try:
         pid = subprocess.check_output(['pgrep', '-f', '{0}.*--work-dir={1}'.format(DAEMON_BIN_NAME, working_dir)])
         return int(pid)
