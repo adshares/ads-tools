@@ -70,7 +70,7 @@ class GenesisFile(object):
     def _genesis_dict(self):
         self.nodes = {}
         for index, node in enumerate(self.genesis['nodes']):
-            node_ident = '{0:04x}'.format(index)
+            node_ident = '{0:04x}'.format(index + 1)
             self.nodes[node_ident] = node
 
     def node_identifier_from_public_key(self, pub_key):
