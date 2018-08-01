@@ -283,7 +283,7 @@ def action_start(working_dir):
     """
 
     if not os.path.exists(working_dir):
-        print
+        print("Working directory {0} does not exist.".format(working_dir))
         sys.exit(1)
 
     genesis_path = os.path.join(working_dir, 'genesis.json')
