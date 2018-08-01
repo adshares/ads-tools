@@ -328,6 +328,10 @@ if __name__ == '__main__':
 
     genesis_data = GenesisFile(args.genesis_url)
 
+    bin_path = sys.argv[0]
+
+    daemon_running = get_daemon_pid()
+
     if args.action == 'start':
         action_start(args.working_dir)
     elif args.action == 'stop':
