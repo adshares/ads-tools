@@ -343,10 +343,15 @@ if __name__ == '__main__':
         action_start(args.working_dir)
 
     elif args.action == 'stop':
-        if args.force_stop:
+
+        if not daemon_running:
+            print "adsd not running. To start, use `{0} start`.".format(bin_path)
+            sys.exit(0)
+        if args.force:
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
         else:
             action_signal(args.working_dir, signal.SIGTERM, 'stop')
+
     elif args.action == 'restart':
         action_signal(args.working_dir, signal.SIGUSR1, 'restart')
     elif args.action == 'configure':
