@@ -331,7 +331,7 @@ if __name__ == '__main__':
     default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
 
     parser = argparse.ArgumentParser(description='Maintenance service for the ADS network.')
-    parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure'])
+    parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure' 'status'])
     parser.add_argument('-w', '--working-dir', default=default_working_dir, help='working directory (default "{0}")'.format(default_working_dir))
     parser.add_argument('-g', '--genesis-url', default=default_genesis_url, help='URL to genesis file (default official genesis)')
     parser.add_argument('-f', '--force', action='store_true')
@@ -380,3 +380,10 @@ if __name__ == '__main__':
             action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
 
         action_configure(args)
+
+    elif args.action == 'status':
+
+        if daemon_running:
+            print("adsd is running.")
+        else:
+            print("adsd is not running.")
