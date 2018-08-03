@@ -67,16 +67,12 @@ We use [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for versioning
 
 ## Authors
 
-* **Adam Włodarkiewicz** - _programmer_ - [awlodarkiewicz](https://github.com/awlodarkiewicz)
-* **Maciej Pilarczyk** - _programmer_ - [m-pilarczyk](https://github.com/m-pilarczyk)
+* **[Adam Włodarkiewicz](https://github.com/awlodarkiewicz)** - _python programmer_
+* **[Maciej Pilarczyk](https://github.com/m-pilarczyk)** - _bash programmer_
 
 See also the list of [contributors](https://github.com/adshares/ads-tools/graphs/contributors) who participated in this 
 project.
 
-## License ![CC BY-ND](https://mirrors.creativecommons.org/presskit/buttons/80x15/svg/by-nd.svg "CC BY-ND 4.0")
+## License 
 
-This work is licensed under the Creative Commons Attribution-NoDerivatives 4.0 International License. To view a copy of 
-this license, visit http://creativecommons.org/licenses/by-nd/4.0/ or send a letter to Creative Commons, PO Box 1866, 
-Mountain View, CA 94042, USA.
- 
-See the [LICENSE](LICENSE.txt) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.

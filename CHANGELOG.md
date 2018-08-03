@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2018-08-03
+### Added
+- Contributing
+- Issue templates
+
 ## [0.0.1] - 2018-07-27
 ### Added
 - ADS Monitor tool
@@ -14,5 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License
 - Readme
 
-[Unreleased]: https://github.com/adshares/ads-tools/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/adshares/ads-tools/compare/v0.0.2...HEAD
+
+[0.0.2]: https://github.com/adshares/ads-tools/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/adshares/ads-tools/releases/tag/v0.0.1
