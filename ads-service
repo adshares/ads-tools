@@ -189,12 +189,12 @@ def configure(config, genesis_data, node_ident_genesis=None):
     if not os.path.exists(private_key_dir):
         os.makedirs(private_key_dir)
 
-    os.chmod(private_key_dir, 0700)
+    os.chmod(private_key_dir, 0o700)
 
     with open(os.path.join(private_key_dir, 'key.txt'), 'w') as f:
         f.write(node['_secret'])
 
-    os.chmod(os.path.join(private_key_dir, 'key.txt'), 0600)
+    os.chmod(os.path.join(private_key_dir, 'key.txt'), 0o600)
 
     nconf = {'svid': node['_nid'],
              'port': 6510,
