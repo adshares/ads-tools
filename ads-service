@@ -19,6 +19,11 @@ except ImportError:
     from urllib.request import urlopen
     from urllib.error import HTTPError
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 DAEMON_BIN_NAME = 'adsd'
 
 
@@ -264,13 +269,13 @@ def action_configure(conf_args):
     node_ident_genesis = get_nodeid_from_genesis(genesis_data, conf_args.private_key)
     if node_ident_genesis:
         print("Public key for your private key found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
-        conf_args.node = raw_input("Node identifier [{0}]: ".format(node_ident_genesis))
+        conf_args.node = input("Node identifier [{0}]: ".format(node_ident_genesis))
         if not conf_args.node:
             conf_args.node = node_ident_genesis
     else:
-        conf_args.node = raw_input("Node identifier: ")
+        conf_args.node = input("Node identifier: ")
 
-    conf_args.interface = raw_input("Node interface [{0}]): ".format(get_my_ip()))
+    conf_args.interface = input("Node interface [{0}]): ".format(get_my_ip()))
     if not conf_args.interface:
         conf_args.interface = get_my_ip()
 
