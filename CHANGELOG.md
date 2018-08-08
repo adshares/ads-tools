@@ -6,10 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.2] - 2018-08-03
+## [0.0.2] - 2018-08-08
 ### Added
+- One daemon running simultaneously
+- Status action
+- Error handling
 - Contributing
 - Issue templates
+
+### Changed
+- Rebuild start/stop
+
 
 ## [0.0.1] - 2018-07-27
 ### Added
