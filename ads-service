@@ -70,11 +70,25 @@ class GenesisFile(object):
         """
 
         if genesis_file.startswith('http'):
-            genesis_response = urlopen(genesis_file)
-            self.genesis = json.loads(genesis_response.read())
+            try:
+                genesis_response = urlopen(genesis_file)
+                self.genesis = json.loads(genesis_response.read())
+            except ValueError as e:
+                eprint("Error decoding remote genesis file. Make sure it's a plain text file in json format.", e)
+                sys.exit(1)
+            except HTTPError as e:
+                eprint("Unable to retrieve remote genesis file.", e)
+                sys.exit(1)
         else:
-            with open(genesis_file, 'r') as f:
-                self.genesis = json.load(f)
+            try:
+                with open(genesis_file, 'r') as f:
+                    self.genesis = json.load(f)
+            except ValueError as e:
+                    eprint("Error decoding local genesis file. Make sure it's a plain text file in json format.", e)
+                    sys.exit(1)
+            except IOError as e:
+                eprint("Unable to open local genesis file ({0}).".format(e))
+                sys.exit(1)
 
         self._genesis_dict()
 
@@ -241,11 +255,8 @@ def action_signal(working_dir, chosen_signal, name):
 
 
 def action_configure(conf_args):
-    try:
-        genesis_data = GenesisFile(conf_args.genesis_url)
-    except (IOError, HTTPError) as e:
-        eprint("Unable to retrieve genesis file ({0}).".format(e))
-        sys.exit(1)
+
+    genesis_data = GenesisFile(conf_args.genesis_url)
 
     conf_args.private_key = getpass.getpass("Node's private key: ")
     print("Default values are in []. Press enter to choose them.")
