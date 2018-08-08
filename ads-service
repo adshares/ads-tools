@@ -322,7 +322,7 @@ def action_start(working_dir):
     ]
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
-    stderr = open(os.path.join(working_dir, '{0}.error.log'.format(DAEMON_BIN_NAME)), 'w')
+    stderr = open(os.path.join(working_dir, 'error.log', 'w'))
 
     proc = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
 
