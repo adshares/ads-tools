@@ -180,9 +180,11 @@ def prepare_node_configuration(node_id, genesis_data, private_key, node_ident_ge
             eprint("No node number provided to set up new node. Did you forget --node?")
             sys.exit(1)
 
-        node = {'_nid': node_id, '_secret': private_key, 'accounts': []}
+        node = {'_nid': node_id,
+                'accounts': []}
         print("Configuring new node: {0}".format(node_id))
 
+    node['_secret'] = private_key
     return node
 
 
