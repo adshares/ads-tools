@@ -275,6 +275,7 @@ def action_configure(conf_args):
         if not conf_args.node:
             conf_args.node = node_ident_genesis
     else:
+        print("Public key for your private key not found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
         conf_args.node = input("Node identifier: ")
 
     conf_args.interface = input("Node interface [{0}]): ".format(get_my_ip()))
