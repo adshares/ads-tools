@@ -353,13 +353,14 @@ def action_clean(working_dir):
         print("{0} doesn't exist".format(working_dir))
 
 
-if __name__ == '__main__':
+def prepare_args():
 
     if 'USER' in os.environ.keys():
         # Support for sudo
         default_working_dir = os.path.join(os.path.expanduser("~" + os.environ["USER"]), ".adsd")
     else:
         default_working_dir = os.path.expanduser("~/.adsd")
+
     default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
 
     parser = argparse.ArgumentParser(description='Maintenance service for the ADS network.')
@@ -370,7 +371,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    validate_platform()
+    return args
+
+
+def decide_action(args):
 
     bin_path = sys.argv[0]
     daemon_running = get_daemon_pid()
@@ -419,3 +423,10 @@ if __name__ == '__main__':
             print("adsd is running.")
         else:
             print("adsd is not running.")
+
+
+if __name__ == '__main__':
+
+    prepped_args = prepare_args()
+    validate_platform()
+    decide_action(prepped_args)
