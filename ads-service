@@ -304,9 +304,6 @@ def get_daemon_pid(working_dir=None):
 
 def action_start(working_dir):
     """
-    Start a background node process. Modifies the local genesis file by setting the `genesis_time`.
-    On success, creates a pid file with the process number.
-
     :param working_dir: Path to node configuration directory.
     :return:
     """
