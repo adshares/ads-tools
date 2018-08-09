@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from glob import glob
 
 import argparse
 import getpass
@@ -320,6 +321,16 @@ def action_start(working_dir):
         '--genesis={0}'.format(genesis_path),
         '--work-dir={0}'.format(working_dir)
     ]
+
+    # Is node part of genesis or is it started again
+    with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
+        private_key = f.read()
+
+    genesis_data = GenesisFile(genesis_path)
+    node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
+
+    if not node_ident_genesis and not glob(os.path.join(working_dir, 'usr', '*.dat')):
+        cmd += ['-f', 1]
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
     stderr = open(os.path.join(working_dir, 'error.log'), 'w')
