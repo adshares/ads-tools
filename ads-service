@@ -355,8 +355,11 @@ def action_clean(working_dir):
 
 if __name__ == '__main__':
 
-    # Support for sudo
-    default_working_dir = os.path.join(os.path.expanduser("~" + os.environ["USER"]), ".adsd")
+    if 'USER' in os.environ.keys():
+        # Support for sudo
+        default_working_dir = os.path.join(os.path.expanduser("~" + os.environ["USER"]), ".adsd")
+    else:
+        default_working_dir = os.path.expanduser("~/.adsd")
     default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
 
     parser = argparse.ArgumentParser(description='Maintenance service for the ADS network.')
