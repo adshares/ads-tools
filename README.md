@@ -25,7 +25,7 @@ sudo install ads-tools
 #### Install from Source Code
 
 ```
-sudo install realpath, python
+sudo apt-get install realpath python
 git clone https://github.com/adshares/ads-tools.git
 cd ads-tools
 ```
