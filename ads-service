@@ -388,49 +388,66 @@ def prepare_args():
     return args
 
 
+def handle_start_action(args, daemon_running):
+
+    if daemon_running:
+        if args.force:
+            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
+        else:
+            eprint("adsd already started. To force kill and start, use `{0} -f start`.".format(args.bin_path))
+            sys.exit(1)
+
+    action_start(args.working_dir)
+
+
+def handle_stop_action(args, daemon_running):
+
+    if not daemon_running:
+        print("adsd not running. To start, use `{0} start`.".format(args.bin_path))
+        sys.exit(0)
+    if args.force:
+        action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
+    else:
+        action_signal(args.working_dir, signal.SIGTERM, 'stop')
+
+
+def handle_restart_action(args, daemon_running):
+
+    if not daemon_running:
+        eprint("adsd not running. To start, use `{0} start`.".format(args.bin_path))
+        sys.exit(1)
+
+    action_signal(args.working_dir, signal.SIGUSR1, 'restart')
+
+
+def handle_configure_action(args, daemon_running):
+
+    if daemon_running:
+        if args.force:
+            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
+        else:
+            eprint(
+                "adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(args.bin_path))
+            sys.exit(1)
+
+    action_configure(args)
+
+
 def decide_action(args):
 
     daemon_running = get_daemon_pid()
 
     if args.action == 'start':
-
-        if daemon_running:
-            if args.force:
-                action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
-            else:
-                eprint("adsd already started. To force kill and start, use `{0} -f start`.".format(args.bin_path))
-                sys.exit(1)
-
-        action_start(args.working_dir)
+        handle_start_action(args, daemon_running)
 
     elif args.action == 'stop':
-
-        if not daemon_running:
-            print("adsd not running. To start, use `{0} start`.".format(args.bin_path))
-            sys.exit(0)
-        if args.force:
-            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
-        else:
-            action_signal(args.working_dir, signal.SIGTERM, 'stop')
+        handle_stop_action(args, daemon_running)
 
     elif args.action == 'restart':
-
-        if not daemon_running:
-            eprint("adsd not running. To start, use `{0} start`.".format(args.bin_path))
-            sys.exit(1)
-
-        action_signal(args.working_dir, signal.SIGUSR1, 'restart')
+        handle_restart_action(args, daemon_running)
 
     elif args.action == 'configure':
-
-        if daemon_running:
-            if args.force:
-                action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
-            else:
-                eprint("adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(args.bin_path))
-                sys.exit(1)
-
-        action_configure(args)
+        handle_configure_action(args, daemon_running)
 
     elif args.action == 'status':
 
