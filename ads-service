@@ -89,7 +89,7 @@ class GenesisFile(object):
         else:
             try:
                 with open(genesis_file, 'r') as f:
-                    self.genesis_raw = genesis_file.read()
+                    self.genesis_raw = f.read()
                     self.genesis = json.loads(self.genesis_raw)
             except ValueError as e:
                     eprint("Error decoding local genesis file. Make sure it's a plain text file in json format.", e)
