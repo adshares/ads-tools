@@ -144,7 +144,7 @@ def validate_platform(verbose=False):
         print("Detected: {0} {1}".format(sys.platform, os.uname()[4]))
 
 
-def get_my_ip(remote_ip="8.8.8.8", remote_port=53):
+def get_my_ip(remote_ip="8.8.8.8", remote_port=53):  # NOSONAR
     """
     Try to connect to remote ip, to get local interface address. Defaults to google DNS.
 
