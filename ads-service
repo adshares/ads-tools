@@ -218,7 +218,7 @@ def configure(config, genesis_data, node_ident_genesis=None):
 
     os.chmod(os.path.join(private_key_dir, 'key.txt'), 0o600)
 
-    nconf = {'svid': node['_nid'],
+    nconf = {'svid': int(node['_nid'], 16),
              'port': 6510,
              'offi': 6511,
              'addr': config.interface}
