@@ -330,7 +330,7 @@ def action_start(working_dir):
     node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
 
     if not node_ident_genesis and not glob(os.path.join(working_dir, 'usr', '*.dat')):
-        cmd += ['-f', 1]
+        cmd += ['-f', '1']
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
     stderr = open(os.path.join(working_dir, 'error.log'), 'w')

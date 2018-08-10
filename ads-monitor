@@ -271,19 +271,19 @@ if [ -z "$working_dir" ]; then
     working_dir=${default_working_dir}
 fi
 
+working_dir=`readlink -f ${working_dir}`
 if [ ! -d ${working_dir} ]; then
     show_error "Cannot find working directory \"$working_dir\""
 fi
-working_dir=`realpath ${working_dir}`
 
 if [ -z "$stderr_path" ]; then
     stderr_path="${working_dir}/${default_stderr}"
 fi
 
+stderr_path=`readlink -f ${stderr_path}`
 if [ ! -f ${stderr_path} ]; then
     show_error "Cannot find STDERR file \"$stderr_path\""
 fi
-stderr_path=`realpath ${stderr_path}`
 
 # Parsing command
 command=

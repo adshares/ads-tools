@@ -1,36 +1,76 @@
-# ADS Toolbox
+<p align="center">
+  <a href="https://adshares.net/">
+    <img src="https://adshares.net/logos/ads.svg" alt="Adshares" width=100 height=100>
+  </a>
+  <h3 align="center"><small>ADS Toolbox</small></h3>
+  <p align="center">
+    <a href="https://github.com/adshares/ads-tools/issues/new?template=bug_report.md&labels=Bug">Report bug</a>
+    ·
+    <a href="https://github.com/adshares/ads-tools/issues/new?template=feature_request.md&labels=New%20Feature">Request feature</a>
+    ·
+    <a href="https://github.com/adshares/ads-tools/wiki">Wiki</a>
+  </p>
+</p>
+
+<br>
 
 Basic tools for maintenance an ADS blockchain node.
 
 ## Getting Started
 
-### Installing
+Several quick start options are available:
 
-#### Release version (recommended)
-
-```
-sudo add-apt-repository ppa:adshares/releases
-sudo apt-get update
-sudo install ads-tools
-```
-
-#### Snapshot version
-
-```
-sudo add-apt-repository ppa:adshares/snapshots
-sudo apt-get update
-sudo install ads-tools
-```
-
-#### Install from Source Code
-
-```
-sudo apt-get install realpath python
-git clone https://github.com/adshares/ads-tools.git
-cd ads-tools
-```
+- Install from Ubuntu PPA (recommended):
+  ```
+  sudo add-apt-repository ppa:adshares/releases
+  sudo apt-get update
+  sudo install ads-tools
+  ```
+- [Download the latest release](https://github.com/adshares/ads-tools/releases/latest)
+- Clone the repo: `git clone https://github.com/adshares/ads-tools.git`
 
 ## Usage
+
+### ADS Service
+
+```
+usage: ads-service [-h] [-w WORKING_DIR] [-g GENESIS_URL] [-f]
+                   {start,stop,restart,configure,status}
+
+Maintenance service for the ADS network.
+
+positional arguments:
+  {start,stop,restart,configure,status}
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -w WORKING_DIR, --working-dir WORKING_DIR
+                        working directory (default "~/.adsd")
+  -g GENESIS_URL, --genesis-url GENESIS_URL
+                        URL to genesis file (default official genesis)
+  -f, --force
+```
+
+#### Examples
+
+##### Configuration
+
+```bash
+ads-service configure
+```
+
+The interactive `ads-service configure` will walk you through the configuration. Some of the steps can be skipped by accepting the default option. For the configuration process to be successful, you'll need to provide:
+
+* private key
+* node identifier
+* node interface (ip)
+
+##### Starting the node
+
+```bash
+ads-service start
+ads-service status
+```
 
 ### ADS Monitor
 
