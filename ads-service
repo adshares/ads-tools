@@ -78,7 +78,8 @@ class GenesisFile(object):
         if genesis_file.startswith('http'):
             try:
                 genesis_response = urlopen(genesis_file)
-                self.genesis = json.loads(genesis_response.read())
+                self.genesis_raw = genesis_response.read()
+                self.genesis = json.loads(self.genesis_raw)
             except ValueError as e:
                 eprint("Error decoding remote genesis file. Make sure it's a plain text file in json format.", e)
                 sys.exit(1)
@@ -111,7 +112,7 @@ class GenesisFile(object):
 
     def save(self, filepath):
         with open(filepath, 'w') as f:
-            json.dump(self.genesis, f)
+            json.dump(self.genesis_raw, f)
 
 
 def validate_platform(verbose=False):
