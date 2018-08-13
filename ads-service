@@ -351,7 +351,7 @@ def action_start(working_dir):
         with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
             private_key = f.read()
 
-        if not is_node_in_genesis(genesis_path, private_key):
+        if is_node_in_genesis(genesis_path, private_key):
             cmd += ['--genesis={0}'.format(genesis_path)]
         else:
             cmd += ['-f', '1']
