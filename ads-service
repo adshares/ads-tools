@@ -192,17 +192,13 @@ def prepare_node_configuration(node_id, genesis_data, private_key, node_ident_ge
     return node
 
 
-def configure(config, genesis_data, node_ident_genesis=None):
+def configure(config, genesis_data, node_id):
     """
     Configure nodes and their first account
 
     :return:
     """
-    node = prepare_node_configuration(config.node, genesis_data, config.private_key, node_ident_genesis)
-
-    if not node:
-        print("No nodes to configure.")
-        sys.exit(1)
+    node = {'_nid': node_id, '_secret': config.private_key, 'accounts': []}
 
     if not os.path.exists(config.working_dir):
         os.makedirs(config.working_dir)
@@ -224,12 +220,14 @@ def configure(config, genesis_data, node_ident_genesis=None):
     nconf = {'svid': int(node['_nid'], 16),
              'port': 6510,
              'offi': 6511,
-             'addr': config.interface}
+             'addr': config.hostname}
 
     filepath = os.path.join(config.working_dir, 'options.cfg')
 
     save_config(filepath, nconf)
     print("{0} Saved options to: {1}".format(node['_nid'], filepath))
+
+    print("Please remember to open ports 6510 and 6511.")
 
 
 def get_public_key(private_key):
@@ -265,6 +263,27 @@ def action_signal(working_dir, chosen_signal, name):
             print("ADS node {0} {1} has failed.".format(working_dir, name))
 
 
+def get_user_node_ident(genesis_data, private_key):
+    node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
+    node_ident_user = ''
+    if node_ident_genesis:
+        print("Public key for your private key found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
+        while not re.match('^[0-9A-Fa-f]/4$', node_ident_user):
+            if node_ident_user:
+                print("Invalid format. Node identifier is a 4 character hex value.")
+            node_ident_user = input("Node identifier [{0}]: ".format(node_ident_genesis))
+            if not node_ident_user:
+                node_ident_user = node_ident_genesis
+    else:
+        print("Public key for your private key not found in genesis file.")
+        while not re.match('^[0-9A-Fa-f]/4$', node_ident_user):
+            if node_ident_user:
+                print("Invalid format. Node identifier is a 4 character hex value.")
+            node_ident_user = input("Node identifier: ")
+
+    return node_ident_user.upper()
+
+
 def action_configure(conf_args):
 
     genesis_data = GenesisFile(conf_args.genesis_url)
@@ -272,21 +291,13 @@ def action_configure(conf_args):
     conf_args.private_key = getpass.getpass("Node's private key: ")
     print("Default values are in []. Press enter to choose them.")
 
-    node_ident_genesis = get_nodeid_from_genesis(genesis_data, conf_args.private_key)
-    if node_ident_genesis:
-        print("Public key for your private key found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
-        conf_args.node = input("Node identifier [{0}]: ".format(node_ident_genesis))
-        if not conf_args.node:
-            conf_args.node = node_ident_genesis
-    else:
-        print("Public key for your private key not found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
-        conf_args.node = input("Node identifier: ")
+    conf_args.node = get_user_node_ident(genesis_data, conf_args.private_key)
 
-    conf_args.interface = input("Node interface [{0}]): ".format(get_my_ip()))
-    if not conf_args.interface:
-        conf_args.interface = get_my_ip()
+    conf_args.hostname = input("Hostname [{0}]): ".format(get_my_ip()))
+    if not conf_args.hostname:
+        conf_args.hostname = get_my_ip()
 
-    configure(conf_args, genesis_data, node_ident_genesis)
+    configure(conf_args, genesis_data, conf_args.node)
 
 
 def get_daemon_pid(working_dir=None):
