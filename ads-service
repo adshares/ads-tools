@@ -366,7 +366,14 @@ def action_start(working_dir):
         eprint("Server not started.")
         sys.exit(1)
 
-    print("ADS node {0} started.".format(working_dir))
+    wait_seconds = 3
+    time.sleep(wait_seconds)
+
+    if get_daemon_pid():
+        print("ADS node {0} started.".format(working_dir))
+    else:
+        print("ADS node {0} failed to start in {1}.".format(working_dir, wait_seconds))
+        sys.exit(1)
 
 
 def prepare_args():
