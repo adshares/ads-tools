@@ -307,6 +307,17 @@ def get_daemon_pid(working_dir=None):
         return None
 
 
+def is_node_in_genesis(genesis_path, private_key):
+
+    genesis_data = GenesisFile(genesis_path)
+    node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
+    return node_ident_genesis
+
+
+def database_exists(working_dir):
+    return glob(os.path.join(working_dir, 'usr', '*.dat'))
+
+
 def action_start(working_dir):
     """
     :param working_dir: Path to node configuration directory.
@@ -329,10 +340,7 @@ def action_start(working_dir):
     with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
         private_key = f.read()
 
-    genesis_data = GenesisFile(genesis_path)
-    node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
-
-    if not node_ident_genesis and not glob(os.path.join(working_dir, 'usr', '*.dat')):
+    if not is_node_in_genesis(genesis_path, private_key) and not database_exists(working_dir):
         cmd += ['-f', '1']
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
