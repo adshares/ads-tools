@@ -268,7 +268,7 @@ def get_user_node_ident(genesis_data, private_key):
     node_ident_user = ''
     if node_ident_genesis:
         print("Public key for your private key found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
-        while not re.match('^[0-9A-Fa-f]/4$', node_ident_user):
+        while not re.match('^[0-9A-Fa-f]{4}$', node_ident_user):
             if node_ident_user:
                 print("Invalid format. Node identifier is a 4 character hex value.")
             node_ident_user = input("Node identifier [{0}]: ".format(node_ident_genesis))
@@ -276,7 +276,7 @@ def get_user_node_ident(genesis_data, private_key):
                 node_ident_user = node_ident_genesis
     else:
         print("Public key for your private key not found in genesis file.")
-        while not re.match('^[0-9A-Fa-f]/4$', node_ident_user):
+        while not re.match('^[0-9A-Fa-f]{4}$', node_ident_user):
             if node_ident_user:
                 print("Invalid format. Node identifier is a 4 character hex value.")
             node_ident_user = input("Node identifier: ")
@@ -343,16 +343,18 @@ def action_start(working_dir):
 
     cmd = [
         DAEMON_BIN_NAME,
-        '--genesis={0}'.format(genesis_path),
         '--work-dir={0}'.format(working_dir)
     ]
 
-    # Is node part of genesis or is it started again
-    with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
-        private_key = f.read()
+    if not database_exists(working_dir):
+        cmd += ['--genesis={0}'.format(genesis_path)]
 
-    if not is_node_in_genesis(genesis_path, private_key) and not database_exists(working_dir):
-        cmd += ['-f', '1']
+        # Is node part of genesis or is it started again
+        with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
+            private_key = f.read()
+
+        if not is_node_in_genesis(genesis_path, private_key):
+            cmd += ['-f', '1']
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'w')
     stderr = open(os.path.join(working_dir, 'error.log'), 'w')
