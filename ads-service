@@ -418,8 +418,7 @@ def handle_stop_action(args, daemon_running):
 def handle_restart_action(args, daemon_running):
 
     if not daemon_running:
-        eprint("adsd not running. To start, use `{0} start`.".format(args.bin_path))
-        sys.exit(1)
+        action_start(args.working_dir)
 
     action_signal(args.working_dir, signal.SIGUSR1, 'restart')
 
