@@ -32,19 +32,69 @@ get_svid() {
     get_opt $1 "svid"
 }
 
+check_stderr() {
+
+	if [ ! -d $1 ]; then
+	    echo "The node has not been configured - cannot find working directory \"$1\""
+		return 1
+	fi
+
+	if [ ! -f $2 ]; then
+        echo "The node has not been started - cannot find STDERR file \"$2\""
+		return 2
+	fi
+
+	line=`tac $2 | head -1`
+    regex="^\[([0-9]+)\]"
+
+    if [[ ${line} =~ ${regex} ]]; then
+		if [ $(date +"%s") -ge $((BASH_REMATCH[1] + 3)) ]; then
+            echo "The node seems to be dead"
+	        return 20
+		fi
+	else
+        echo "Cannot parse STDERR file \"$2\""
+		return 10
+	fi
+
+	return 0
+}
+
 # Checks if the node is alive
 status() {
+
+	if ! message=$(check_stderr $1 $2) ; then
+		if [ -n "$3" ]; then
+            echo "0  ${message}"
+        else
+            echo 0
+        fi
+        return
+    fi
+
     if ! host=`get_addr $1`; then
-        echo 0
-        exit 1
+        if [ -n "$3" ]; then
+            echo "0  Cannot find host in \"$1\""
+        else
+            echo 0
+        fi
+        return
     fi
     if ! port=`get_offi $1`; then
-        echo 0
-        exit 1
+        if [ -n "$3" ]; then
+            echo "0  Cannot find port in \"$1\""
+        else
+            echo 0
+        fi
+        return
     fi
     if ! node_id=`get_svid $1`; then
-        echo 0
-        exit 1
+        if [ -n "$3" ]; then
+            echo "0  Cannot find node number in \"$1\""
+        else
+            echo 0
+        fi
+        return
     fi
 
 	line=`tac $2 | head -1`
@@ -172,12 +222,6 @@ peers() {
 # Number of currently open connections
 connections() {
     clock "ticket" $1 $2
-    #if ! offi=`get_offi $1`; then
-    #    echo 0
-    #    exit 1
-    #fi
-
-    #netstat -na | grep -P :${offi}.*[0-9\.]+:[0-9]+ | grep -v 0.0.0.0:* | grep -v TIME_WAIT | wc -l
 }
 
 # Display error message
@@ -282,8 +326,8 @@ if [ -z "$working_dir" ]; then
     working_dir=${default_working_dir}
 fi
 
-working_dir=`readlink -f ${working_dir}`
-if [ ! -d ${working_dir} ]; then
+working_dir=`readlink -m ${working_dir}`
+if [ "$1" != "status" ] && [ ! -d ${working_dir} ]; then
     show_error "Cannot find working directory \"$working_dir\""
 fi
 
@@ -291,8 +335,8 @@ if [ -z "$stderr_path" ]; then
     stderr_path="${working_dir}/${default_stderr}"
 fi
 
-stderr_path=`readlink -f ${stderr_path}`
-if [ ! -f ${stderr_path} ]; then
+stderr_path=`readlink -m ${stderr_path}`
+if [ "$1" != "status" ] && [ ! -f ${stderr_path} ]; then
     show_error "Cannot find STDERR file \"$stderr_path\""
 fi
 
@@ -303,7 +347,6 @@ case "$1" in
     tps)    command="tps ${stderr_path} ${verbose}" ;;
     txs)    command="txs ${stderr_path} ${verbose}" ;;
     peers)  command="peers ${stderr_path} ${verbose}" ;;
-    #conns)  command="connections ${working_dir} ${verbose}" ;;
     conns)  command="connections ${stderr_path} ${verbose}" ;;
     *)      show_error "Unsupported command \"$1\"" ;;
 esac
