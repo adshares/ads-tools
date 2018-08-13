@@ -358,21 +358,6 @@ def action_start(working_dir):
     print("ADS node {0} started.".format(working_dir))
 
 
-def action_clean(working_dir):
-    """
-    Remove and recreate the whole ADS data directory.
-
-    :param working_dir: Directory to clean up.
-    :return:
-    """
-    if os.path.exists(working_dir):
-        shutil.rmtree(working_dir)
-        os.mkdir(working_dir)
-        print("ADS node configuration removed.")
-    else:
-        print("{0} doesn't exist".format(working_dir))
-
-
 def prepare_args():
 
     if 'USER' in os.environ.keys():
@@ -431,11 +416,16 @@ def handle_restart_action(args, daemon_running):
 def handle_configure_action(args, daemon_running):
 
     if daemon_running:
+        eprint("adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(args.bin_path))
+        sys.exit(1)
+
+    if os.path.exists(args.working_dir):
         if args.force:
-            action_signal(args.working_dir, signal.SIGKILL, 'forced stop')
+             shutil.rmtree(args.working_dir)
+             os.mkdir(args.working_dir)
+             eprint("Previous ADS node configuration removed.")
         else:
-            eprint(
-                "adsd is running. Please stop it first, using `{0} stop` or `{0} --force stop`.".format(args.bin_path))
+            eprint("ADS node configuration already exists; to overwrite it please use `{0} --force configure`.".format(args.bin_path))
             sys.exit(1)
 
     action_configure(args)
