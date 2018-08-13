@@ -198,7 +198,7 @@ def configure(config, genesis_data):
 
     :return:
     """
-    node = {'_nid': config.node, '_secret': config.private_key, 'accounts': []}
+    node = {'_nid': config.node.upper(), '_secret': config.private_key, 'accounts': []}
 
     if not os.path.exists(config.working_dir):
         os.makedirs(config.working_dir)
@@ -273,7 +273,7 @@ def get_user_node_ident(genesis_data, private_key):
             if node_ident_user:
                 print("Invalid format. Node identifier is a 4 character hex value.")
 
-            node_ident_user = input("Node identifier [{0}]: ".format(node_ident_genesis))
+            node_ident_user = input("Node identifier [{0}]: ".format(node_ident_genesis.upper()))
             if not node_ident_user:
                 node_ident_user = node_ident_genesis
 
