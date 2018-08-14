@@ -50,11 +50,11 @@ check_stderr() {
     if [[ ${line} =~ ${regex} ]]; then
 		if [ $(date +"%s") -ge $((BASH_REMATCH[1] + 3)) ]; then
             echo "The node seems to be dead"
-	        return 20
+	        return 3
 		fi
 	else
         echo "Cannot parse STDERR file \"$2\""
-		return 10
+		return 21
 	fi
 
 	return 0
@@ -63,36 +63,27 @@ check_stderr() {
 # Checks if the node is alive
 status() {
 
-	if ! message=$(check_stderr $1 $2) ; then
-		if [ -n "$3" ]; then
-            echo "0  ${message}"
-        else
-            echo 0
-        fi
-        return
-    fi
-
     if ! host=`get_addr $1`; then
         if [ -n "$3" ]; then
-            echo "0  Cannot find host in \"$1\""
+            >&2 echo "-11  Cannot find host in \"$1\""
         else
-            echo 0
+            >&2 echo -11
         fi
         return
     fi
     if ! port=`get_offi $1`; then
         if [ -n "$3" ]; then
-            echo "0  Cannot find port in \"$1\""
+            >&2 echo "-12  Cannot find port in \"$1\""
         else
-            echo 0
+            >&2 echo -12
         fi
         return
     fi
     if ! node_id=`get_svid $1`; then
         if [ -n "$3" ]; then
-            echo "0  Cannot find node number in \"$1\""
+            >&2 echo "-13  Cannot find node number in \"$1\""
         else
-            echo 0
+            >&2 echo -13
         fi
         return
     fi
@@ -116,15 +107,15 @@ status() {
 	        fi
 	    elif [[ ${data} =~ \"error\":\ \"(.+)\" ]]; then
 	        if [ -n "$3" ]; then
-	            echo "0  Response error: ${BASH_REMATCH[1]}"
+	            echo "-31  Response error: ${BASH_REMATCH[1]}"
 	        else
-	            echo 0
+	            echo -31
 	        fi
 	    else
 	        if [ -n "$3" ]; then
-	            echo "0  Cannot parse 'get_block' response"
+	            echo "-32  Cannot parse 'get_block' response"
 	        else
-	            echo 0
+	            echo -32
 	        fi
 	    fi
 	fi
@@ -182,7 +173,12 @@ clock() {
         fi
 
     else
-        >&2 echo "Cannot find CLOCK log"
+
+        if [ -n "$3" ]; then
+            >&2 echo "-22 Cannot find CLOCK log"
+        else
+            echo -22
+        fi
         exit 1
     fi
 }
@@ -204,8 +200,8 @@ log() {
         fi
 
     else
-        >&2 echo "Cannot find $1 log"
-        exit 1
+        >&2 echo "-22 Cannot find $1 log"
+        exit -22
     fi
 }
 
@@ -327,17 +323,20 @@ if [ -z "$working_dir" ]; then
 fi
 
 working_dir=`readlink -m ${working_dir}`
-if [ "$1" != "status" ] && [ ! -d ${working_dir} ]; then
-    show_error "Cannot find working directory \"$working_dir\""
-fi
 
 if [ -z "$stderr_path" ]; then
     stderr_path="${working_dir}/${default_stderr}"
 fi
 
 stderr_path=`readlink -m ${stderr_path}`
-if [ "$1" != "status" ] && [ ! -f ${stderr_path} ]; then
-    show_error "Cannot find STDERR file \"$stderr_path\""
+
+if ! message=$(check_stderr ${working_dir} ${stderr_path}) ; then
+	if [ -n "${verbose}" ]; then
+        >&2 echo "$(( $# * -1 )) ${message}"
+    else
+        >&2 echo $(( $# * -1 ))
+    fi
+    exit 1
 fi
 
 # Parsing command
