@@ -287,6 +287,11 @@ def get_user_node_ident(genesis_data, private_key):
     return node_ident_user.upper()
 
 
+def validate_ip(ip_addr):
+    pattern = '^(25[0-5]\.|2[0-4][0-9]\.|[01]?[0-9][0-9]?\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+    return re.match(pattern, ip_addr.strip())
+
+
 def action_configure(conf_args):
 
     genesis_data = GenesisFile(conf_args.genesis_url)
@@ -296,9 +301,13 @@ def action_configure(conf_args):
 
     conf_args.node = get_user_node_ident(genesis_data, conf_args.private_key)
 
-    conf_args.hostname = input("Hostname [{0}]): ".format(get_my_ip()))
-    if not conf_args.hostname:
-        conf_args.hostname = get_my_ip()
+    hostname = ''
+    while not validate_ip(hostname):
+        hostname = input("Hostname [{0}]): ".format(get_my_ip()))
+        if not hostname:
+            hostname = get_my_ip()
+
+    conf_args.hostname = hostname
 
     configure(conf_args, genesis_data)
 
