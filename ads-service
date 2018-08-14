@@ -303,6 +303,8 @@ def action_configure(conf_args):
 
     hostname = ''
     while not validate_ip(hostname):
+        if hostname:
+            print("Invalid format. Only IPv4 format is accepted.")
         hostname = input("Hostname [{0}]): ".format(get_my_ip()))
         if not hostname:
             hostname = get_my_ip()
