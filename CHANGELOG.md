@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Return errors' codes in monitor
 
+### Fixed
+- Support for empty lines in stderr
+
 ## [0.0.5] - 2018-08-13
 ### Added
 - Validation of node identifier (4 character hex)

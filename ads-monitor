@@ -44,7 +44,7 @@ check_stderr() {
 		return 2
 	fi
 
-	line=`tac $2 | head -1`
+	line=`tac $2 | grep -m 1 .`
     regex="^\[([0-9]+)\]"
 
     if [[ ${line} =~ ${regex} ]]; then
@@ -88,7 +88,7 @@ status() {
         return
     fi
 
-	line=`tac $2 | head -1`
+	line=`tac $2 | grep -m 1 .`
     regex="^\[([0-9]+)\]\ Awaiting for genesis block time:\ ([0-9]+\ s)"
 
     if [[ ${line} =~ ${regex} ]]; then
