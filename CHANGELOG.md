@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transform command status into peers
 
 ### Fixed
-- Support for empty lines in stderr
+- Support for new lines in stderr
 
 ## [0.0.5] - 2018-08-13
 ### Added

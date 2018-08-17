@@ -43,7 +43,7 @@ tps() {
 # Parsing CLOCK log
 clock() {
 
-	line=`tac $2 | grep -m 1 .`
+	line=`tac $2 | grep -m 1 -E "^\[[0-9]+\]"`
     regex="^\[([0-9]+)\]\ Awaiting for genesis block time:\ ([0-9]+\ s)"
 
     if [[ ${line} =~ ${regex} ]]; then
