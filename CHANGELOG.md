@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Return errors' codes in monitor
+- Transform command status into peers
 
 ### Fixed
 - Support for empty lines in stderr
