@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hostname validation (only ipv4 allowed)
 
 ### Changed
-- Return errors' codes in monitor
-- Transform command status into peers
+- Return errors' codes in status monitor
+- Print errors on stderr
+- Include peers in command status
 
 ### Fixed
 - Support for new lines in stderr
