@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Hostname validation (only ipv4 allowed)
+- Support for database sync in monitor
 
 ### Changed
 - Return errors' codes in status monitor

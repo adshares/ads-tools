@@ -61,25 +61,50 @@ clock() {
 		fi
     fi
 
-    line=`tac $2 | grep CLOCK | head -1`
-    regex="^\[([0-9]+)\]\ CLOCK:\ ([0-9A-F]+).*\ $1:([0-9]+)"
+    sync_regex="^([0-9]+):\[([0-9]+)\]\ START\ syncing\ header\ ([0-9A-F]+)$"
+    clock_regex="^([0-9]+):\[([0-9]+)\]\ CLOCK:\ ([0-9A-F]+).*\ $1:([0-9]+)"
 
-    if [[ ${line} =~ ${regex} ]]; then
+    sync_line=`tac /tmp/er.txt | grep -n "START syncing header" | head -1`
+    clock_line=`tac $2 | grep -n CLOCK | head -1`
 
-        time=${BASH_REMATCH[1]}
-        clock="0x000${BASH_REMATCH[2]}"
-        val=${BASH_REMATCH[3]}
+	if [[ ${sync_line} =~ ${sync_regex} ]]; then
+		sync_num=${BASH_REMATCH[1]}
+		sync_time=${BASH_REMATCH[2]}
+		sync_block=${BASH_REMATCH[3]}
+	fi
 
+	if [[ ${clock_line} =~ ${clock_regex} ]]; then
+		clock_num=${BASH_REMATCH[1]}
+		clock_time=${BASH_REMATCH[2]}
+		clock_count=${BASH_REMATCH[3]}
+		clock_val=${BASH_REMATCH[4]}
+	fi
+
+	if [ -n "${sync_num}" ] && ([ -z "${clock_num}" ] || [ ${sync_num} -le ${clock_num} ]); then
+		left_blocks=$(( (`date +%s` / 512) - ("0x${sync_block}" / 512) ))
+		if [ -n "$4" ]; then
+			 if [ -n "$3" ]; then
+		        date_msg ${sync_time} "Database synchronizing; left ${left_blocks} blocks"
+		    else
+		        echo 2
+		    fi
+		    return
+		else
+	        >&2 date_msg ${sync_time} "Database synchronizing; left ${left_blocks} blocks"
+	        echo 0
+			return 2
+		fi
+	elif [ -n "${clock_num}" ]; then
+        clock="0x000${clock_count}"
         if [ -n "$3" ]; then
-            date_msg ${time} "0x${clock: -3}  ${val}"
+            date_msg ${clock_time} "0x${clock: -3}  ${clock_val}"
         elif [ -n "$4" ]; then
-            echo $(( 100 + ${val} ))
+            echo $(( 100 + ${clock_val} ))
         else
-            echo ${val}
+            echo ${clock_val}
         fi
-
-    else
-	    if [ -n "$4" ]; then
+	else
+		if [ -n "$4" ]; then
 			 if [ -n "$3" ]; then
 		        echo "Error 22: Cannot find CLOCK log"
 		    else
@@ -91,7 +116,7 @@ clock() {
 	        echo 0
 	        exit 22
 	     fi
-    fi
+	fi
 }
 
 # Number of awaiting transactions
