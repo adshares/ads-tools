@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Return errors' codes in status monitor
 - Print errors on stderr
 - Include peers in command status
+- Checking node configuration in continuous mode
 
 ### Fixed
 - Support for new lines in stderr
