@@ -64,7 +64,7 @@ clock() {
     sync_regex="^([0-9]+):\[([0-9]+)\]\ START\ syncing\ header\ ([0-9A-F]+)$"
     clock_regex="^([0-9]+):\[([0-9]+)\]\ CLOCK:\ ([0-9A-F]+).*\ $1:([0-9]+)"
 
-    sync_line=`tac /tmp/er.txt | grep -n "START syncing header" | head -1`
+    sync_line=`tac $2 | grep -n "START syncing header" | head -1`
     clock_line=`tac $2 | grep -n CLOCK | head -1`
 
 	if [[ ${sync_line} =~ ${sync_regex} ]]; then
