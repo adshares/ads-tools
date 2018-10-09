@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2018-10-08
+### Fixed
+- Converting a secret key into a public key
+
 ## [1.0.1] - 2018-09-20
 ### Changed
 - Log level support
@@ -79,8 +83,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License
 - Readme
 
-[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.0.2...HEAD
 
+[1.0.2]: https://github.com/adshares/ads-tools/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/adshares/ads-tools/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/adshares/ads-tools/compare/v0.0.5...v1.0.0
 [0.0.5]: https://github.com/adshares/ads-tools/compare/v0.0.4...v0.0.5
