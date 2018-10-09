@@ -12,6 +12,9 @@ import socket
 import subprocess
 import sys
 import time
+import tempfile
+import hashlib
+import tarfile
 
 try:
     from urllib2 import urlopen, HTTPError
@@ -206,6 +209,72 @@ def validate_private_key(private_key):
     pattern = '^[0-9a-fA-F]{64}$'
     return re.match(pattern, private_key.strip())
 
+def rewrite_msid(msid_filepath, node_id):
+    with open(msid_filepath, 'r+') as f:
+        # Read
+        old_msid = f.read()
+
+        # Update msid
+        new_msid = re.sub(r'^([A-F0-9]+) ([A-F0-9]+) ([A-F0-9X]+) ', r'\1 \2 {0} '.format(node_id), old_msid)
+
+        # Overwrite
+        f.seek(0)
+        f.write(new_msid)
+        f.truncate()
+
+def read_backup_checksum(checksum_url):
+    orig_hash = None
+    response = urlopen(checksum_url)
+    if response:
+        orig_hash = response.read().split(' ')[0]
+
+    return orig_hash
+
+def get_backup(backup_url, output_path):
+    # Download backup file
+    response = urlopen(backup_url)
+
+    with tempfile.TemporaryFile('r+b') as f:
+        # Write the file
+        while True:
+            chunk = response.read(128 * 1024)
+            if not chunk:
+                break
+            f.write(chunk)
+
+        # Rewind and calculate hash
+        f.seek(0)
+
+        sha256 = hashlib.sha256()
+        for b in iter(lambda: f.read(128 * 1024), b''):
+            sha256.update(b)
+
+        # Compare hashes
+        download_hash = sha256.hexdigest()
+        orig_hash = read_backup_checksum(backup_url + '.sha256')
+
+        if orig_hash != download_hash:
+            return 1
+
+        # Extract backup
+        f.seek(0)
+        with tarfile.open(fileobj=f) as tf:
+            tf.extractall(output_path)
+
+def get_svid_from_options(options_filepath):
+
+    svid = None
+
+    with open(options_filepath) as f:
+        line = f.readline()
+
+        while not svid and line:
+            match = re.match('^svid=(\d+)$', line)
+            if match:
+                svid = match.group(1)
+            line = f.readline()
+
+    return svid
 
 def action_configure(conf_args):
 
@@ -256,7 +325,7 @@ def database_exists(working_dir):
     return glob(os.path.join(working_dir, 'usr', '*.dat'))
 
 
-def action_start(working_dir):
+def action_start(working_dir, fast_sync):
     """
     :param working_dir: Path to node configuration directory.
     :return:
@@ -273,10 +342,16 @@ def action_start(working_dir):
 
     if not database_exists(working_dir):
 
-        if is_node_in_genesis(genesis_path, private_key):
-            cmd += ['--genesis={0}'.format(genesis_path)]
-        else:
+        if fast_sync:
             cmd += ['-f', '1']
+        else:
+            svid_int = int(get_svid_from_options(os.path.join(working_dir, 'options.cfg')))
+            svid_hex = '{:0>4X}'.format(svid_int)
+
+            get_backup('http://monitor.e11.click/backup/ads_node_db.tar.gz',
+                       os.path.join(working_dir))
+
+            rewrite_msid(os.path.join(working_dir, 'msid.txt'), svid_hex)
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'a')
     stderr = open(os.path.join(working_dir, 'error.log'), 'a')
@@ -312,6 +387,7 @@ def prepare_args():
     parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure', 'status'])
     parser.add_argument('-w', '--working-dir', default=default_working_dir, help='working directory (default "{0}")'.format(default_working_dir))
     parser.add_argument('-f', '--force', action='store_true', help='Force killing a process when restarting a server.')
+    parser.add_argument('-t', '--fast', action='store_true', help='Use a fast sync when joining the network.')
 
     args = parser.parse_args()
 
@@ -329,7 +405,7 @@ def handle_start_action(args, daemon_running):
             eprint("adsd already started. To force kill and start, use `{0} -f start`.".format(args.bin_path))
             sys.exit(1)
 
-    action_start(args.working_dir)
+    action_start(args.working_dir, args.fast)
 
 
 def handle_stop_action(args, daemon_running):
