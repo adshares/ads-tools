@@ -231,6 +231,8 @@ def read_backup_checksum(checksum_url):
     return orig_hash
 
 def get_backup(backup_url, output_path):
+
+    print('Downloading backup, please wait.')
     # Download backup file
     response = urlopen(backup_url)
 
@@ -253,10 +255,16 @@ def get_backup(backup_url, output_path):
         download_hash = sha256.hexdigest()
         orig_hash = read_backup_checksum(backup_url + '.sha256')
 
-        if orig_hash != download_hash:
-            return 1
+        print('Original hash:      {0}'.format(orig_hash))
+        print('File backup hash:   {0}'.format(download_hash))
 
+        if orig_hash != download_hash:
+            eprint('Backup validation failed. Please try again.')
+            sys.exit(1)
+
+        print('Backup validation successful.')
         # Extract backup
+        print('Extracting backup.')
         f.seek(0)
         with tarfile.open(fileobj=f) as tf:
             tf.extractall(output_path)
@@ -347,7 +355,6 @@ def action_start(working_dir, fast_sync):
         else:
             svid_int = int(get_svid_from_options(os.path.join(working_dir, 'options.cfg')))
             svid_hex = '{:0>4X}'.format(svid_int)
-
             get_backup('http://monitor.e11.click/backup/ads_node_db.tar.gz',
                        os.path.join(working_dir))
 
