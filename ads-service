@@ -4,7 +4,6 @@ from glob import glob
 
 import argparse
 import getpass
-import json
 import os
 import re
 import shutil
@@ -64,59 +63,6 @@ def save_config(filepath, settings):
                 f.write("{0}={1}\n".format(k, v))
 
 
-class GenesisFile(object):
-    """
-    Genesis file object, with helper functions.
-    """
-    def __init__(self, genesis_file):
-        """
-        Read the file in.
-
-        :param genesis_file: Genesis filepath or URL
-        """
-
-        if genesis_file.startswith('http'):
-            try:
-                genesis_response = urlopen(genesis_file)
-                self.genesis_raw = genesis_response.read()
-                self.genesis = json.loads(self.genesis_raw)
-            except ValueError as e:
-                eprint("Error decoding remote genesis file. Make sure it's a plain text file in json format.", e)
-                sys.exit(1)
-            except HTTPError as e:
-                eprint("Unable to retrieve remote genesis file.", e)
-                sys.exit(1)
-        else:
-            try:
-                with open(genesis_file, 'r') as f:
-                    self.genesis_raw = f.read()
-
-                self.genesis = json.loads(self.genesis_raw)
-            except ValueError as e:
-                    eprint("Error decoding local genesis file. Make sure it's a plain text file in json format.", e)
-                    sys.exit(1)
-            except IOError as e:
-                eprint("Unable to open local genesis file ({0}).".format(e))
-                sys.exit(1)
-
-        self._genesis_dict()
-
-    def _genesis_dict(self):
-        self.nodes = {}
-        for index, node in enumerate(self.genesis['nodes']):
-            node_ident = '{0:04x}'.format(index + 1)
-            self.nodes[node_ident] = node
-
-    def node_identifier_from_public_key(self, pub_key):
-        for node_id in self.nodes.keys():
-            if self.nodes[node_id]['public_key'] == pub_key:
-                return node_id
-
-    def save(self, filepath):
-        with open(filepath, 'w') as f:
-            f.write(self.genesis_raw)
-
-
 def validate_platform(verbose=False):
     """
     Check if you can run ADS. Currently supported only on 64 bit Linux.
@@ -163,36 +109,20 @@ def get_my_ip(remote_ip="8.8.8.8", remote_port=53):  # NOSONAR
     return my_ip
 
 
-def prepare_node_configuration(node_id, genesis_data, private_key, node_ident_genesis=None):
+def prepare_node_configuration(node_id, private_key):
 
-    if node_ident_genesis:
-        print("Found matching public key in genesis.")
-        # Check if private key matches public key in the chosen identifier
-        if node_id and node_ident_genesis != node_id:
-            eprint("Invalid private key for node: {0}".format(node_id))
-            sys.exit(1)
+    # New node (not in genesis)
+    if not node_id:
+        eprint("No node number provided to set up new node. Did you forget --node?")
+        sys.exit(1)
 
-        # Node id taken from matching public key
-        node = genesis_data.nodes[node_ident_genesis]
-        node['_nid'] = node_ident_genesis
-
-        print("Configuring nodes: {0}".format(node_ident_genesis))
-    else:
-        print("No matching public key found in genesis file.")
-        # New node (not in genesis)
-        if not node_id:
-            eprint("No node number provided to set up new node. Did you forget --node?")
-            sys.exit(1)
-
-        node = {'_nid': node_id,
-                'accounts': []}
-        print("Configuring new node: {0}".format(node_id))
+    node = {'_nid': node_id, 'accounts': []}
+    print("Configuring new node: {0}".format(node_id))
 
     node['_secret'] = private_key
     return node
 
-
-def configure(config, genesis_data):
+def configure(config):
     """
     Configure nodes and their first account
 
@@ -202,8 +132,6 @@ def configure(config, genesis_data):
 
     if not os.path.exists(config.working_dir):
         os.makedirs(config.working_dir)
-
-    genesis_data.save(os.path.join(config.working_dir, 'genesis.json'))
 
     private_key_dir = os.path.join(config.working_dir, 'key')
 
@@ -238,11 +166,6 @@ def get_public_key(private_key):
         return match.group(1)
 
 
-def get_nodeid_from_genesis(genesis_data, private_key):
-    pub_key = get_public_key(private_key)
-    return genesis_data.node_identifier_from_public_key(pub_key)
-
-
 def action_signal(working_dir, chosen_signal, name):
     """
     Send a signal to daemon
@@ -263,29 +186,16 @@ def action_signal(working_dir, chosen_signal, name):
             print("ADS node {0} {1} has failed.".format(working_dir, name))
 
 
-def get_user_node_ident(genesis_data, private_key):
-    node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
-    node_ident_user = ''
+def get_user_node_ident():
 
-    if node_ident_genesis:
-        print("Public key for your secret key has been found in genesis file. Associated node identifier is {0}.".format(node_ident_genesis))
-        while not re.match('^[0-9A-Fa-f]{4}$', node_ident_user):
-            if node_ident_user:
-                print("Invalid format. Node identifier is a 4 character hex value.")
+    node_ident_user = input("Node identifier: ")
 
-            node_ident_user = input("Node identifier [{0}]: ".format(node_ident_genesis.upper()))
-            if not node_ident_user:
-                node_ident_user = node_ident_genesis
-
-    else:
-        print("Public key for your secret key has not been found in genesis file.")
-        while not re.match('^[0-9A-Fa-f]{4}$', node_ident_user):
-            if node_ident_user:
-                print("Invalid format. Node identifier is a 4 character hex value.")
-            node_ident_user = input("Node identifier: ")
+    while not re.match('^[0-9A-Fa-f]{4}$', node_ident_user):
+        if node_ident_user:
+            print("Invalid format. Node identifier is a 4 character hex value.")
+        node_ident_user = input("Node identifier: ")
 
     return node_ident_user.upper()
-
 
 def validate_ip(ip_addr):
     pattern = '^(25[0-5]\.|2[0-4][0-9]\.|[01]?[0-9][0-9]?\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
@@ -299,8 +209,6 @@ def validate_private_key(private_key):
 
 def action_configure(conf_args):
 
-    genesis_data = GenesisFile(conf_args.genesis_url)
-
     while True:
         private_key = getpass.getpass("Node's secret key: ")
         if validate_private_key(private_key):
@@ -309,9 +217,9 @@ def action_configure(conf_args):
             print("Invalid format. Secret key is a 64 character hex value.")
 
     conf_args.private_key = private_key
+    conf_args.node = get_user_node_ident()
 
     print("Default values are in []. Press enter to choose them.")
-    conf_args.node = get_user_node_ident(genesis_data, conf_args.private_key)
 
     hostname = ''
     while not validate_ip(hostname):
@@ -323,7 +231,7 @@ def action_configure(conf_args):
 
     conf_args.hostname = hostname
 
-    configure(conf_args, genesis_data)
+    configure(conf_args)
 
 
 def get_daemon_pid(working_dir=None):
@@ -344,13 +252,6 @@ def get_daemon_pid(working_dir=None):
         return None
 
 
-def is_node_in_genesis(genesis_path, private_key):
-
-    genesis_data = GenesisFile(genesis_path)
-    node_ident_genesis = get_nodeid_from_genesis(genesis_data, private_key)
-    return node_ident_genesis
-
-
 def database_exists(working_dir):
     return glob(os.path.join(working_dir, 'usr', '*.dat'))
 
@@ -365,17 +266,12 @@ def action_start(working_dir):
         print("Working directory {0} does not exist.".format(working_dir))
         sys.exit(1)
 
-    genesis_path = os.path.join(working_dir, 'genesis.json')
-
     cmd = [
         DAEMON_BIN_NAME,
         '--work-dir={0}'.format(working_dir)
     ]
 
     if not database_exists(working_dir):
-        # Is node part of genesis or is it started again
-        with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
-            private_key = f.read()
 
         if is_node_in_genesis(genesis_path, private_key):
             cmd += ['--genesis={0}'.format(genesis_path)]
@@ -412,13 +308,10 @@ def prepare_args():
     else:
         default_working_dir = os.path.expanduser("~/.adsd")
 
-    default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
-
     parser = argparse.ArgumentParser(description='Maintenance service for the ADS network.')
     parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure', 'status'])
     parser.add_argument('-w', '--working-dir', default=default_working_dir, help='working directory (default "{0}")'.format(default_working_dir))
-    parser.add_argument('-g', '--genesis-url', default=default_genesis_url, help='URL to genesis file (default official genesis)')
-    parser.add_argument('-f', '--force', action='store_true')
+    parser.add_argument('-f', '--force', action='store_true', help='Force killing a process when restarting a server.')
 
     args = parser.parse_args()
 
