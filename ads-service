@@ -232,7 +232,7 @@ def read_backup_checksum(checksum_url):
 
 def get_backup(backup_url, output_path):
 
-    print('Downloading backup, please wait.')
+    print('Downloading DB, please wait.')
     # Download backup file
     response = urlopen(backup_url)
 
@@ -355,7 +355,7 @@ def action_start(working_dir, fast_sync):
         else:
             svid_int = int(get_svid_from_options(os.path.join(working_dir, 'options.cfg')))
             svid_hex = '{:0>4X}'.format(svid_int)
-            get_backup('http://monitor.e11.click/backup/ads_node_db.tar.gz',
+            get_backup('https://db.adshares.net/ads_node_db.tar.gz',
                        os.path.join(working_dir))
 
             rewrite_msid(os.path.join(working_dir, 'msid.txt'), svid_hex)
