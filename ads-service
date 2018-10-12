@@ -17,7 +17,7 @@ import hashlib
 import tarfile
 
 try:
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import urlopen, Request, HTTPError
 except ImportError:
     from urllib.request import urlopen
     from urllib.error import HTTPError
@@ -224,7 +224,8 @@ def rewrite_msid(msid_filepath, node_id):
 
 def read_backup_checksum(checksum_url):
     orig_hash = None
-    response = urlopen(checksum_url)
+    req = Request(checksum_url, headers={'User-Agent':'Mozilla/5.0'})
+    response = urlopen(req)
     if response:
         orig_hash = response.read().split(' ')[0]
 
@@ -234,7 +235,8 @@ def get_backup(backup_url, output_path):
 
     print('Downloading DB, please wait.')
     # Download backup file
-    response = urlopen(backup_url)
+    req = Request(backup_url, headers={'User-Agent':'Mozilla/5.0'})
+    response = urlopen(req)
 
     with tempfile.TemporaryFile('r+b') as f:
         # Write the file
@@ -394,7 +396,7 @@ def prepare_args():
     parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure', 'status'])
     parser.add_argument('-w', '--working-dir', default=default_working_dir, help='working directory (default "{0}")'.format(default_working_dir))
     parser.add_argument('-f', '--force', action='store_true', help='Force killing a process when restarting a server.')
-    parser.add_argument('-t', '--fast', action='store_true', help='Use a fast sync when joining the network.')
+    parser.add_argument('-s', '--fast', action='store_true', help='Use a fast sync when joining the network.')
 
     args = parser.parse_args()
 
