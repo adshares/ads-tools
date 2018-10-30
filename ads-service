@@ -218,7 +218,7 @@ def configure(config, genesis_data):
 
 
 def get_public_key(private_key):
-    proc = subprocess.Popen(['ads', '-s'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(['ads', '-w=/tmp', '-s'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, errors = proc.communicate("{0}\n".format(private_key))
     match = re.search('Public key: (.*?)\s', errors)
     if match:
