@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from glob import glob
 
 import argparse
 import getpass
 import json
+import hashlib
 import os
 import re
 import shutil
@@ -12,10 +12,13 @@ import signal
 import socket
 import subprocess
 import sys
+import tarfile
+import tempfile
 import time
+from glob import glob
 
 try:
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import urlopen, Request, HTTPError
 except ImportError:
     from urllib.request import urlopen
     from urllib.error import HTTPError
@@ -26,6 +29,7 @@ except NameError:
     pass
 
 DAEMON_BIN_NAME = 'adsd'
+GENESIS_URL = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
 
 
 def eprint(*args, **kwargs):
@@ -80,24 +84,9 @@ class GenesisFile(object):
                 genesis_response = urlopen(genesis_file)
                 self.genesis_raw = genesis_response.read()
                 self.genesis = json.loads(self.genesis_raw)
-            except ValueError as e:
-                eprint("Error decoding remote genesis file. Make sure it's a plain text file in json format.", e)
-                sys.exit(1)
-            except HTTPError as e:
-                eprint("Unable to retrieve remote genesis file.", e)
-                sys.exit(1)
-        else:
-            try:
-                with open(genesis_file, 'r') as f:
-                    self.genesis_raw = f.read()
-
-                self.genesis = json.loads(self.genesis_raw)
-            except ValueError as e:
-                    eprint("Error decoding local genesis file. Make sure it's a plain text file in json format.", e)
-                    sys.exit(1)
-            except IOError as e:
-                eprint("Unable to open local genesis file ({0}).".format(e))
-                sys.exit(1)
+            except (HTTPError, ValueError) as e:
+                self.genesis_raw = None
+                self.genesis = {'nodes': []}
 
         self._genesis_dict()
 
@@ -203,8 +192,6 @@ def configure(config, genesis_data):
     if not os.path.exists(config.working_dir):
         os.makedirs(config.working_dir)
 
-    genesis_data.save(os.path.join(config.working_dir, 'genesis.json'))
-
     private_key_dir = os.path.join(config.working_dir, 'key')
 
     if not os.path.exists(private_key_dir):
@@ -231,7 +218,7 @@ def configure(config, genesis_data):
 
 
 def get_public_key(private_key):
-    proc = subprocess.Popen(['ads', '-s'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(['ads', '-w=/tmp', '-s'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, errors = proc.communicate("{0}\n".format(private_key))
     match = re.search('Public key: (.*?)\s', errors)
     if match:
@@ -296,10 +283,86 @@ def validate_private_key(private_key):
     pattern = '^[0-9a-fA-F]{64}$'
     return re.match(pattern, private_key.strip())
 
+def rewrite_msid(msid_filepath, node_id):
+    with open(msid_filepath, 'r+') as f:
+        # Read
+        old_msid = f.read()
+
+        # Update msid
+        new_msid = re.sub(r'^([A-F0-9]+) ([A-F0-9]+) ([A-F0-9X]+) ', r'\1 \2 {0} '.format(node_id), old_msid)
+
+        # Overwrite
+        f.seek(0)
+        f.write(new_msid)
+        f.truncate()
+
+def read_backup_checksum(checksum_url):
+    orig_hash = None
+    req = Request(checksum_url, headers={'User-Agent': 'Mozilla/5.0'})
+    response = urlopen(req)
+    if response:
+        orig_hash = response.read().split(' ')[0]
+
+    return orig_hash
+
+def get_backup(backup_url, output_path):
+
+    print('Downloading DB, please wait.')
+    # Download backup file
+    req = Request(backup_url, headers={'User-Agent': 'Mozilla/5.0'})
+    response = urlopen(req)
+
+    with tempfile.TemporaryFile('r+b') as f:
+        # Write the file
+        while True:
+            chunk = response.read(128 * 1024)
+            if not chunk:
+                break
+            f.write(chunk)
+
+        # Rewind and calculate hash
+        f.seek(0)
+
+        sha256 = hashlib.sha256()
+        for b in iter(lambda: f.read(128 * 1024), b''):
+            sha256.update(b)
+
+        # Compare hashes
+        download_hash = sha256.hexdigest()
+        orig_hash = read_backup_checksum(backup_url + '.sha256')
+
+        print('Original hash:      {0}'.format(orig_hash))
+        print('File backup hash:   {0}'.format(download_hash))
+
+        if orig_hash != download_hash:
+            eprint('Backup validation failed. Please try again.')
+            sys.exit(1)
+
+        print('Backup validation successful.')
+        # Extract backup
+        print('Extracting backup.')
+        f.seek(0)
+        with tarfile.open(fileobj=f) as tf:
+            tf.extractall(output_path)
+
+def get_svid_from_options(options_filepath):
+
+    svid = None
+
+    with open(options_filepath) as f:
+        line = f.readline()
+
+        while not svid and line:
+            match = re.match('^svid=(\d+)$', line)
+            if match:
+                svid = match.group(1)
+            line = f.readline()
+
+    return svid
 
 def action_configure(conf_args):
 
-    genesis_data = GenesisFile(conf_args.genesis_url)
+    genesis_data = GenesisFile(GENESIS_URL)
 
     while True:
         private_key = getpass.getpass("Node's secret key: ")
@@ -355,7 +418,7 @@ def database_exists(working_dir):
     return glob(os.path.join(working_dir, 'usr', '*.dat'))
 
 
-def action_start(working_dir):
+def action_start(working_dir, fast_sync):
     """
     :param working_dir: Path to node configuration directory.
     :return:
@@ -365,22 +428,22 @@ def action_start(working_dir):
         print("Working directory {0} does not exist.".format(working_dir))
         sys.exit(1)
 
-    genesis_path = os.path.join(working_dir, 'genesis.json')
-
     cmd = [
         DAEMON_BIN_NAME,
         '--work-dir={0}'.format(working_dir)
     ]
 
     if not database_exists(working_dir):
-        # Is node part of genesis or is it started again
-        with open(os.path.join(working_dir, 'key', 'key.txt'), 'r') as f:
-            private_key = f.read()
 
-        if is_node_in_genesis(genesis_path, private_key):
-            cmd += ['--genesis={0}'.format(genesis_path)]
-        else:
+        if fast_sync:
             cmd += ['-f', '1']
+        else:
+            svid_int = int(get_svid_from_options(os.path.join(working_dir, 'options.cfg')))
+            svid_hex = '{:0>4X}'.format(svid_int)
+            get_backup('https://db.adshares.net/ads_node_db.tar.gz',
+                       os.path.join(working_dir))
+
+            rewrite_msid(os.path.join(working_dir, 'msid.txt'), svid_hex)
 
     stdout = open(os.path.join(working_dir, '{0}.log'.format(DAEMON_BIN_NAME)), 'a')
     stderr = open(os.path.join(working_dir, 'error.log'), 'a')
@@ -412,13 +475,11 @@ def prepare_args():
     else:
         default_working_dir = os.path.expanduser("~/.adsd")
 
-    default_genesis_url = 'https://raw.githubusercontent.com/adshares/ads/master/genesis.json'
-
     parser = argparse.ArgumentParser(description='Maintenance service for the ADS network.')
     parser.add_argument('action', choices=['start', 'stop', 'restart', 'configure', 'status'])
     parser.add_argument('-w', '--working-dir', default=default_working_dir, help='working directory (default "{0}")'.format(default_working_dir))
-    parser.add_argument('-g', '--genesis-url', default=default_genesis_url, help='URL to genesis file (default official genesis)')
-    parser.add_argument('-f', '--force', action='store_true')
+    parser.add_argument('-f', '--force', action='store_true', help='Force killing a process when restarting a server.')
+    parser.add_argument('-s', '--fast', action='store_true', help='Use a fast sync when joining the network.')
 
     args = parser.parse_args()
 
@@ -436,7 +497,7 @@ def handle_start_action(args, daemon_running):
             eprint("adsd already started. To force kill and start, use `{0} -f start`.".format(args.bin_path))
             sys.exit(1)
 
-    action_start(args.working_dir)
+    action_start(args.working_dir, args.fast)
 
 
 def handle_stop_action(args, daemon_running):
