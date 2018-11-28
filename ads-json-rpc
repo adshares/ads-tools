@@ -5,13 +5,11 @@ from __future__ import print_function
 
 import argparse
 import json
-import os
-import sys
 from subprocess import PIPE, Popen
 
 from flask import Flask
 from flask_jsonrpc import JSONRPC
-from flask_jsonrpc.exceptions import InvalidParamsError, Error
+from flask_jsonrpc.exceptions import Error, InvalidParamsError
 from waitress import serve
 
 
@@ -51,7 +49,7 @@ def get_account(address):
 def get_log(**kwargs):
     if len(kwargs) > 1:
         raise InvalidParamsError("get_log(from=Number) takes 1 argument ({} given)".format(len(kwargs)))
-    if not kwargs.has_key('from'):
+    if 'from' not in kwargs:
         raise InvalidParamsError("from is not a valid parameter for get_log(from=Number)")
     return run_read_command('get_log', kwargs)
 
@@ -74,17 +72,20 @@ def send_one(address, amount, message=None):
 # === end of RPC commands ===
 
 
-def run_read_command(command_name, arguments={}):
+def run_read_command(command_name, arguments=None):
     return run_command(command_name, arguments)
 
 
-def run_write_command(command_name, arguments={}):
+def run_write_command(command_name, arguments=None):
     return run_command(command_name, arguments, True)
 
 
-def run_command(command_name, arguments={}, run_get_me=False):
+def run_command(command_name, arguments=None, run_get_me=False):
 
-    arguments = dict((k, v) for k, v in arguments.iteritems() if v is not None)
+    if not arguments:
+        arguments = {}
+
+    arguments = {k: v for k, v in arguments.items() if v is not None}
     arguments.update({'run': command_name})
 
     global ads_entrypoint
@@ -95,22 +96,22 @@ def run_command(command_name, arguments={}, run_get_me=False):
     else:
         out, err = ps.communicate(json.dumps(arguments) + '\n')
 
-    responses = out.split("\n");
-    if not responses[0]:
+    if not out:
         raise AdsError(data=err)
 
-    response = json.loads(responses[0])
-    if 'error' in response:
-        raise AdsError(message=response['error'], data=err)
+    responses = out.split("\n")
 
-    if run_get_me:
-        if not responses[1]:
-            raise AdsError(data=err)
-        response = json.loads(responses[1])
+    if run_get_me and len(responses) == 1:
+        raise AdsError(data=err)
+
+    # Check for errors in ADS output
+    responses = [json.loads(r) for r in responses if r]
+    for response in responses:
         if 'error' in response:
             raise AdsError(message=response['error'], data=err)
 
-    return response
+    # Return last response (or first if one element list)
+    return responses[-1]
 
 
 if __name__ == '__main__':
