@@ -89,7 +89,7 @@ def run_command(command_name, arguments=None, run_get_me=False):
     arguments.update({'run': command_name})
 
     global ads_entrypoint
-    ps = Popen(ads_entrypoint, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    ps = Popen(ads_entrypoint, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     if run_get_me:
         out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(arguments) + '\n')
