@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
+
+import argparse
+import json
+import os
+import sys
+from subprocess import PIPE, Popen
+
+from flask import Flask
+from flask_jsonrpc import JSONRPC
+from flask_jsonrpc.exceptions import InvalidParamsError, Error
+from waitress import serve
+
+
+class AdsError(Error):
+    code = -32000
+    message = 'ADS CLI Client Error'
+
+    def __init__(self, message=None, code=None, data=None):
+        super(Error, self).__init__()
+        if message is not None:
+            self.message = message
+        if code is not None:
+            self.code = code
+        if data is not None:
+            self.data = data
+
+
+app = Flask('ads-json-rpc')
+jsonrpc = JSONRPC(app, '/', enable_web_browsable_api=False)
+
+ads_entrypoint = ['ads', '-n0']
+
+
+# === RPC commands ===
+
+@jsonrpc.method('get_me() -> Object', safe=True, validate=True)
+def get_me():
+    return run_read_command('get_me')
+
+
+@jsonrpc.method('get_account(address=String) -> Object', safe=True, validate=True)
+def get_account(address):
+    return run_read_command('get_account', locals())
+
+
+@jsonrpc.method('get_log(from=Number) -> Object', safe=True)
+def get_log(**kwargs):
+    if len(kwargs) > 1:
+        raise InvalidParamsError("get_log(from=Number) takes 1 argument ({} given)".format(len(kwargs)))
+    if not kwargs.has_key('from'):
+        raise InvalidParamsError("from is not a valid parameter for get_log(from=Number)")
+    return run_read_command('get_log', kwargs)
+
+
+@jsonrpc.method('get_transaction(txid=String) -> Object', safe=True, validate=True)
+def get_transaction(txid):
+
+    while True:
+        ret = run_read_command('get_blocks')
+        if 'updated_blocks' not in ret or int(ret['updated_blocks']) <= 0:
+            break
+
+    return run_read_command('get_transaction', locals())
+
+
+@jsonrpc.method('send_one(address=String, amount=Number, message=String) -> Object')
+def send_one(address, amount, message=None):
+    return run_write_command('send_one', locals())
+
+# === end of RPC commands ===
+
+
+def run_read_command(command_name, arguments={}):
+    return run_command(command_name, arguments)
+
+
+def run_write_command(command_name, arguments={}):
+    return run_command(command_name, arguments, True)
+
+
+def run_command(command_name, arguments={}, run_get_me=False):
+
+    arguments = dict((k, v) for k, v in arguments.iteritems() if v is not None)
+    arguments.update({'run': command_name})
+
+    global ads_entrypoint
+    ps = Popen(ads_entrypoint, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+
+    if run_get_me:
+        out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(arguments) + '\n')
+    else:
+        out, err = ps.communicate(json.dumps(arguments) + '\n')
+
+    responses = out.split("\n");
+    if not responses[0]:
+        raise AdsError(data=err)
+
+    response = json.loads(responses[0])
+    if 'error' in response:
+        raise AdsError(message=response['error'], data=err)
+
+    if run_get_me:
+        if not responses[1]:
+            raise AdsError(data=err)
+        response = json.loads(responses[1])
+        if 'error' in response:
+            raise AdsError(message=response['error'], data=err)
+
+    return response
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Run JSON-RPC proxy server to ADS client')
+    parser.add_argument('--port', type=int, help='Server port', default=5000)
+    parser.add_argument('--host', help='Server listening interface', default='127.0.0.1')
+    parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
+    parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
+
+    args = parser.parse_args()
+
+    if args.working_dir:
+        ads_entrypoint += ['-w', args.working_dir]
+
+    if args.debug:
+        app.run(host=args.host, port=args.port, debug=args.debug)
+    else:
+        serve(app, host=args.host, port=args.port)

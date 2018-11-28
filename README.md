@@ -100,6 +100,30 @@ Continuous checking transactions in block with more info:
 ads-monitor -vc txs
 ```
 
+### JSON-RPC server
+
+```
+usage: ads-json-rpc [-h] [--port PORT] [--host HOST] [-d] [-w WORKING_DIR]
+
+Run JSON-RPC proxy server to ADS client
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --port PORT           Server port
+  --host HOST           Server listening interface
+  -d, --debug           Debug mode
+  -w WORKING_DIR, --working-dir WORKING_DIR
+                        Path to ads working directory
+```
+
+#### Examples
+
+Starting the server on http://127.0.0.1:6868/:
+
+```
+ads-json-rpc --host 127.0.0.1 --port 6868
+```
+
 ## Versioning
 
 We use [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for versioning. For the versions available, see the 
