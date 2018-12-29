@@ -7,11 +7,17 @@ import argparse
 import json
 from subprocess import PIPE, Popen
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_jsonrpc import JSONRPC
+from flask_jsonrpc.site import JSONRPCSite
 from flask_jsonrpc.exceptions import Error, InvalidParamsError
 from waitress import serve
 
+corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+}
 
 class AdsError(Error):
     code = -32000
@@ -27,22 +33,36 @@ class AdsError(Error):
             self.data = data
 
 
+class AdsJSONRPCSite(JSONRPCSite):
+    def dispatch(self, request, method=''):
+        if request.method == 'OPTIONS':
+            rv = '';
+            status = 200;
+        else:
+            rv, status = JSONRPCSite.dispatch(self, request, method)
+        response = jsonify(rv)
+        response.headers.extend(corsHeaders)
+        return response, status
+
+
+ads_site = AdsJSONRPCSite()
+
 app = Flask('ads-json-rpc')
-jsonrpc = JSONRPC(app, '/', enable_web_browsable_api=False)
+jsonrpc = JSONRPC(app, '/', enable_web_browsable_api=False, site=ads_site)
 
 ads_entrypoint = ['ads', '-n0']
 
 
 # === RPC commands ===
 
-@jsonrpc.method('get_me() -> Object', safe=True, validate=True)
-def get_me():
-    return run_read_command('get_me')
-
-
 @jsonrpc.method('get_account(address=String) -> Object', safe=True, validate=True)
 def get_account(address):
     return run_read_command('get_account', locals())
+
+
+@jsonrpc.method('get_block(block=String) -> Object', safe=True, validate=True)
+def get_block(block=None):
+    return run_read_command('get_block', locals())
 
 
 @jsonrpc.method('get_log(from=Number) -> Object', safe=True)
@@ -52,6 +72,11 @@ def get_log(**kwargs):
     if 'from' not in kwargs:
         raise InvalidParamsError("from is not a valid parameter for get_log(from=Number)")
     return run_read_command('get_log', kwargs)
+
+
+@jsonrpc.method('get_me() -> Object', safe=True, validate=True)
+def get_me():
+    return run_read_command('get_me')
 
 
 @jsonrpc.method('get_transaction(txid=String) -> Object', safe=True, validate=True)
