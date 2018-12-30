@@ -11,13 +11,44 @@ from flask import Flask, jsonify
 from flask_jsonrpc import JSONRPC
 from flask_jsonrpc.site import JSONRPCSite
 from flask_jsonrpc.exceptions import Error, InvalidParamsError
+from flask_jsonrpc.types import Type
 from waitress import serve
+
+Array = Type('Array', (object,), {}).I(list, set, frozenset, tuple).N('array')
+Boolean = Type('Boolean', (object,), {}).I(bool).N('boolean')
+Integer = Type('Number', (object,), {}).I(int, long).N('integer')
+Null = Type('Null', (object,), {}).I(type(None)).N('null')
+Number = Type('Number', (object,), {}).I(int, long, float, complex).N('number')
+Object = Type('Object', (object,), {}).I(dict).N('object')
+String = Type('String', (object,), {}).I(basestring, str, unicode).N('string')
+Any = Type('Any', (object,), {}).I(Array, Boolean, Integer, Null, Number, Object, String).N('any')
+
+# === config and globals ===
 
 corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type'
 }
+
+ads_entrypoint = ['ads', '-n0']
+ads_options = {
+    '_host': String,
+    '_port': Integer,
+    '_address': String,
+    '_dry-run': Boolean,
+    'signature': String,
+    'time': Integer,
+}
+ads_trans_args = {
+    'msid': Integer,
+    'hash': String,
+}
+ads_working_dir = None
+ads_transactions_dir = None
+
+
+# === helpers ===
 
 class AdsError(Error):
     code = -32000
@@ -45,76 +76,241 @@ class AdsJSONRPCSite(JSONRPCSite):
         return response, status
 
 
-ads_site = AdsJSONRPCSite()
+def validate_params(method, params, required={}, optional={}, transaction=False):
+    global ads_options, ads_trans_args
+    optional.update(ads_options)
+    if transaction:
+        optional.update(ads_trans_args)
+
+    req_counter = 0;
+    param_type = 'None';
+    for k in params:
+        if k in required:
+            req_counter += 1;
+            param_type = required[k];
+        elif k in optional:
+            param_type = optional[k];
+        else:
+            raise InvalidParamsError('{0} is not a valid parameter for {1}'.format(k, method.__name__))
+
+        if not Any.kind(params[k]) == param_type:
+            raise InvalidParamsError('{0} is not the correct type {1} for {2}'.format(Any.kind(params[k]), param_type, k))
+
+    if req_counter != len(required):
+        raise InvalidParamsError('Not enough params provided for {0}'.format(method.__name__))
+
+# === main app ===
+
 
 app = Flask('ads-json-rpc')
-jsonrpc = JSONRPC(app, '/', enable_web_browsable_api=False, site=ads_site)
-
-ads_entrypoint = ['ads', '-n0']
-
+jsonrpc = JSONRPC(app, '/', enable_web_browsable_api=False, site=AdsJSONRPCSite())
 
 # === RPC commands ===
+# === read commands ===
 
-@jsonrpc.method('get_account(address=String) -> Object', safe=True, validate=True)
-def get_account(address):
+
+@jsonrpc.method('get_me')
+def get_me(**kwargs):
+    validate_params(get_me, kwargs)
+    global ads_transactions_dir
+    return run_command('get_me', kwargs, working_dir=ads_transactions_dir)
+
+
+@jsonrpc.method('decode_raw')
+def decode_raw(**kwargs):
+    validate_params(decode_raw, kwargs, required={'data': String}, optional={'signature': String})
+    return run_read_command('decode_raw', locals())
+
+
+@jsonrpc.method('get_account')
+def get_account(**kwargs):
+    validate_params(get_account, kwargs, required={'address': String})
     return run_read_command('get_account', locals())
 
 
-@jsonrpc.method('get_block(block=String) -> Object', safe=True, validate=True)
-def get_block(block=None):
-    return run_read_command('get_block', locals())
+@jsonrpc.method('get_accounts')
+def get_accounts(**kwargs):
+    validate_params(get_accounts, kwargs, required={'node': Integer}, optional={'block': String})
+    return run_read_command('get_accounts', locals())
 
 
-@jsonrpc.method('get_log(from=Number) -> Object', safe=True)
+@jsonrpc.method('get_block')
+def get_block(**kwargs):
+    validate_params(get_block, kwargs, optional={'block': String})
+    return run_read_command('get_block', kwargs)
+
+
+@jsonrpc.method('get_broadcast')
+def get_broadcast(**kwargs):
+    validate_params(get_broadcast, kwargs, optional={'from': String})
+    return run_read_command('get_broadcast', kwargs)
+
+
+@jsonrpc.method('get_log')
 def get_log(**kwargs):
-    if len(kwargs) > 1:
-        raise InvalidParamsError("get_log(from=Number) takes 1 argument ({} given)".format(len(kwargs)))
-    if 'from' not in kwargs:
-        raise InvalidParamsError("from is not a valid parameter for get_log(from=Number)")
+    validate_params(get_log, kwargs, optional={'from': Integer})
     return run_read_command('get_log', kwargs)
 
 
-@jsonrpc.method('get_me() -> Object', safe=True, validate=True)
-def get_me():
-    return run_read_command('get_me')
+@jsonrpc.method('get_message')
+def get_message(**kwargs):
+    validate_params(get_message, kwargs, required={'message_id': String}, optional={'block': String})
+    return run_read_command('get_message', kwargs)
 
 
-@jsonrpc.method('get_transaction(txid=String) -> Object', safe=True, validate=True)
-def get_transaction(txid):
+@jsonrpc.method('get_message_list')
+def get_message_list(**kwargs):
+    validate_params(get_message_list, kwargs, optional={'block': String})
+    return run_read_command('get_message_list', kwargs)
+
+
+@jsonrpc.method('get_transaction')
+def get_transaction(**kwargs):
+    validate_params(get_transaction, kwargs, required={'txid': String})
 
     while True:
         ret = run_read_command('get_blocks')
         if 'updated_blocks' not in ret or int(ret['updated_blocks']) <= 0:
             break
 
-    return run_read_command('get_transaction', locals())
+    return run_read_command('get_transaction', kwargs)
 
 
-@jsonrpc.method('send_one(address=String, amount=Number, message=String) -> Object')
-def send_one(address, amount, message=None):
-    return run_write_command('send_one', locals())
+@jsonrpc.method('get_vipkyes')
+def get_vipkyes(**kwargs):
+    validate_params(get_vipkyes, kwargs, required={'viphash': String})
+
+    while True:
+        ret = run_read_command('get_blocks')
+        if 'updated_blocks' not in ret or int(ret['updated_blocks']) <= 0:
+            break
+
+    return run_read_command('get_vipkyes', kwargs)
+
+
+@jsonrpc.method('get_signatures')
+def get_signatures(**kwargs):
+    validate_params(get_signatures, kwargs, optional={'block': String})
+    return run_read_command('get_signatures', kwargs)
+
+
+# === write commands ===
+
+
+@jsonrpc.method('broadcast')
+def broadcast(**kwargs):
+    validate_params(broadcast, kwargs, transaction=True, required={'message': String})
+    return run_write_command('broadcast', kwargs)
+
+
+@jsonrpc.method('change_account_key')
+def change_account_key(**kwargs):
+    validate_params(change_account_key, kwargs, transaction=True, required={'public_key': String, 'confirm': String})
+    return run_write_command('change_account_key', kwargs)
+
+
+@jsonrpc.method('change_node_key')
+def change_node_key(**kwargs):
+    validate_params(change_node_key, kwargs, transaction=True, required={'public_key': String}, optional={'node': Integer})
+    return run_write_command('change_node_key', kwargs)
+
+
+@jsonrpc.method('create_account')
+def create_account(**kwargs):
+    validate_params(create_account, kwargs, transaction=True, optional={'node': Integer, 'public_key': String, 'confirm': String})
+    return run_write_command('create_account', kwargs)
+
+
+@jsonrpc.method('create_node')
+def create_node(**kwargs):
+    validate_params(create_node, kwargs, transaction=True)
+    return run_write_command('create_node', kwargs)
+
+
+@jsonrpc.method('log_account')
+def log_account(**kwargs):
+    validate_params(log_account, kwargs, transaction=True)
+    return run_write_command('log_account', kwargs)
+
+
+@jsonrpc.method('retrieve_funds')
+def retrieve_funds(**kwargs):
+    validate_params(retrieve_funds, kwargs, transaction=True, required={'address': String})
+    return run_write_command('retrieve_funds', kwargs)
+
+
+@jsonrpc.method('send_again')
+def send_again(**kwargs):
+    validate_params(send_again, kwargs, transaction=True, required={'data': String, 'signature': String})
+    return run_write_command('send_again', kwargs)
+
+
+@jsonrpc.method('send_one')
+def send_one(**kwargs):
+    validate_params(send_one, kwargs, transaction=True, required={'address': String, 'amount': Number}, optional={'message': String})
+    return run_write_command('send_one', kwargs)
+
+
+@jsonrpc.method('send_many')
+def send_many(**kwargs):
+    validate_params(send_many, kwargs, transaction=True, required={'wires': Array})
+    #validate_params(send_one, kwargs['wires'], required={'x': Number})
+    return run_write_command('send_many', kwargs)
+
+
+@jsonrpc.method('set_account_status')
+def set_account_status(**kwargs):
+    validate_params(set_account_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    return run_write_command('set_account_status', kwargs)
+
+
+@jsonrpc.method('set_node_status')
+def set_node_status(**kwargs):
+    validate_params(set_node_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    return run_write_command('set_node_status', kwargs)
+
+
+@jsonrpc.method('unset_account_status')
+def unset_account_status(**kwargs):
+    validate_params(unset_account_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    return run_write_command('unset_account_status', kwargs)
+
+
+@jsonrpc.method('unset_node_status')
+def unset_node_status(**kwargs):
+    validate_params(unset_node_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    return run_write_command('unset_node_status', kwargs)
+
 
 # === end of RPC commands ===
 
 
 def run_read_command(command_name, arguments=None):
-    return run_command(command_name, arguments)
+    global ads_working_dir
+    return run_command(command_name, arguments, working_dir=ads_working_dir)
 
 
-def run_write_command(command_name, arguments=None):
-    return run_command(command_name, arguments, True)
+def run_write_command(command_name, arguments=None, cmd_args=None):
+    global ads_transactions_dir
+    run_get_me = 'signature' not in arguments
+    return run_command(command_name, arguments, run_get_me=run_get_me, working_dir=ads_transactions_dir)
 
 
-def run_command(command_name, arguments=None, run_get_me=False):
+def run_command(command_name, arguments=None, run_get_me=False, working_dir=None):
+    global ads_entrypoint
+    ads = ads_entrypoint[:];
 
     if not arguments:
         arguments = {}
-
-    arguments = {k: v for k, v in arguments.items() if v is not None}
+    for k in arguments.keys():
+        if k.startswith('_'):
+            ads += ['--{}'.format(k[1:]), str(arguments.pop(k))]
+    if working_dir:
+        ads += ['--work-dir', working_dir]
     arguments.update({'run': command_name})
-
-    global ads_entrypoint
-    ps = Popen(ads_entrypoint, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
+    print(ads)
+    print(arguments)
+    ps = Popen(ads, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     if run_get_me:
         out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(arguments) + '\n')
@@ -146,11 +342,15 @@ if __name__ == '__main__':
     parser.add_argument('--host', help='Server listening interface', default='127.0.0.1')
     parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
+    parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
 
     args = parser.parse_args()
 
     if args.working_dir:
-        ads_entrypoint += ['-w', args.working_dir]
+        ads_working_dir = args.working_dir
+        ads_transactions_dir = args.working_dir
+    if args.transactions_dir:
+        ads_transactions_dir = args.transactions_dir
 
     if args.debug:
         app.run(host=args.host, port=args.port, debug=args.debug)

@@ -124,6 +124,8 @@ optional arguments:
   -d, --debug           Debug mode
   -w WORKING_DIR, --working-dir WORKING_DIR
                         Path to ads working directory
+  -t TRANSACTIONS_DIR, --transactions-dir TRANSACTIONS_DIR
+                        Path to ads working directory for transactions
 ```
 
 #### Examples
