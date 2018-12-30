@@ -119,19 +119,19 @@ def get_me(**kwargs):
 @jsonrpc.method('decode_raw')
 def decode_raw(**kwargs):
     validate_params(decode_raw, kwargs, required={'data': String}, optional={'signature': String})
-    return run_read_command('decode_raw', locals())
+    return run_read_command('decode_raw', kwargs)
 
 
 @jsonrpc.method('get_account')
 def get_account(**kwargs):
     validate_params(get_account, kwargs, required={'address': String})
-    return run_read_command('get_account', locals())
+    return run_read_command('get_account', kwargs)
 
 
 @jsonrpc.method('get_accounts')
 def get_accounts(**kwargs):
     validate_params(get_accounts, kwargs, required={'node': Integer}, optional={'block': String})
-    return run_read_command('get_accounts', locals())
+    return run_read_command('get_accounts', kwargs)
 
 
 @jsonrpc.method('get_block')
@@ -308,8 +308,7 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     if working_dir:
         ads += ['--work-dir', working_dir]
     arguments.update({'run': command_name})
-    print(ads)
-    print(arguments)
+
     ps = Popen(ads, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     if run_get_me:
