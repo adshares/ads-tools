@@ -31,7 +31,7 @@ corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type'
 }
 
-ads_entrypoint = ['ads', '-n0']
+ads_entrypoint = None
 ads_options = {
     '_host': String,
     '_port': Integer,
@@ -149,7 +149,8 @@ def get_broadcast(**kwargs):
 @jsonrpc.method('get_log')
 def get_log(**kwargs):
     validate_params(get_log, kwargs, optional={'from': Integer})
-    return run_read_command('get_log', kwargs)
+    global ads_transactions_dir
+    return run_command('get_log', kwargs, working_dir=ads_transactions_dir)
 
 
 @jsonrpc.method('get_message')
@@ -339,12 +340,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run JSON-RPC proxy server to ADS client')
     parser.add_argument('--port', type=int, help='Server port', default=5000)
     parser.add_argument('--host', help='Server listening interface', default='127.0.0.1')
+    parser.add_argument('--ads', help='ADS client', default='ads')
     parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
     parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
 
     args = parser.parse_args()
 
+    ads_entrypoint = [ args.ads, '-n0']
     if args.working_dir:
         ads_working_dir = args.working_dir
         ads_transactions_dir = args.working_dir

@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- ADS client server argument
+### Fixed
+- Protect 'get_log' method
+
+## [1.2.1] - 2018-12-30
+### Fixed
+- JSON-RPC _get_account_ address parameter
 
 ## [1.2.1] - 2018-12-30
 ### Fixed
