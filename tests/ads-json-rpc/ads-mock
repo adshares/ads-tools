@@ -19,7 +19,7 @@ if __name__ == '__main__':
     try:
         json_data['args'] = sys.argv
     except TypeError:
-        print('Not an JSON object')
+        print('Not a JSON object')
         sys.exit(1)
 
     print(json.dumps(json_data))
