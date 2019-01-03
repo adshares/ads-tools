@@ -149,7 +149,8 @@ def get_broadcast(**kwargs):
 @jsonrpc.method('get_log')
 def get_log(**kwargs):
     validate_params(get_log, kwargs, optional={'from': Integer})
-    return run_read_command('get_log', kwargs)
+    global ads_transactions_dir
+    return run_command('get_log', kwargs, working_dir=ads_transactions_dir)
 
 
 @jsonrpc.method('get_message')
@@ -308,7 +309,7 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     if working_dir:
         ads += ['--work-dir', working_dir]
     arguments.update({'run': command_name})
-    print(ads)
+
     ps = Popen(ads, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     if run_get_me:
