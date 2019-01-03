@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
+
+import json
+import sys
+
+if __name__ == '__main__':
+
+    input_data = sys.stdin.read()
+
+    try:
+        json_data = json.loads(input_data)
+    except ValueError:
+        print('JSON parsing error')
+        sys.exit(1)
+
+    try:
+        json_data['args'] = sys.argv
+    except TypeError:
+        print('Not an JSON object')
+        sys.exit(1)
+
+    print(json.dumps(json_data))
