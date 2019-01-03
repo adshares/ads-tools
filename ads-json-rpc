@@ -347,7 +347,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    ads_entrypoint = [ args.ads, '-n0']
+    ads_entrypoint = [args.ads, '-n0']
     if args.working_dir:
         ads_working_dir = args.working_dir
         ads_transactions_dir = args.working_dir
