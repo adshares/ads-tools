@@ -262,7 +262,7 @@ def send_again(**kwargs):
 
 @jsonrpc.method('send_one')
 def send_one(**kwargs):
-    validate_params(send_one, kwargs, transaction=True, required={'address': String, 'amount': Number}, optional={'message': String})
+    validate_params(send_one, kwargs, transaction=True, required={'address': String, 'amount': String}, optional={'message': String})
     return run_write_command('send_one', kwargs)
 
 
