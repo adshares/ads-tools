@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Free accounts support
 - ADS client server argument
 ### Fixed
 - Protect 'get_log' method
