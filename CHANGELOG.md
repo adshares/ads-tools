@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Free accounts support
 - ADS client server argument
+- Behave tests
+### Changed
+- Method `send_one` takes `amount` as String
 ### Fixed
 - Protect 'get_log' method
 
