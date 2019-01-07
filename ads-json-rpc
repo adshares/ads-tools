@@ -191,16 +191,16 @@ def get_transaction(**kwargs):
     return run_read_command('get_transaction', kwargs)
 
 
-@jsonrpc.method('get_vipkyes')
-def get_vipkyes(**kwargs):
-    validate_params(get_vipkyes, kwargs, required={'viphash': String})
+@jsonrpc.method('get_vipkeys')
+def get_vipkeys(**kwargs):
+    validate_params(get_vipkeys, kwargs, required={'viphash': String})
 
     while True:
         ret = run_read_command('get_blocks')
         if 'updated_blocks' not in ret or int(ret['updated_blocks']) <= 0:
             break
 
-    return run_read_command('get_vipkyes', kwargs)
+    return run_read_command('get_vipkeys', kwargs)
 
 
 @jsonrpc.method('get_signatures')
@@ -268,7 +268,7 @@ def send_one(**kwargs):
 
 @jsonrpc.method('send_many')
 def send_many(**kwargs):
-    validate_params(send_many, kwargs, transaction=True, required={'wires': Array})
+    validate_params(send_many, kwargs, transaction=True, required={'wires': Object})
     #validate_params(send_one, kwargs['wires'], required={'x': Number})
     return run_write_command('send_many', kwargs)
 
