@@ -156,6 +156,240 @@ Feature: Proxy with mock ads client
       """
       Then response will have an error "InvalidParamsError"
 
+  Scenario: Call get_accounts method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_accounts",
+          "params": {
+          	  "node": 1
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_accounts method with block id
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_accounts",
+          "params": {
+          	  "node": 1,
+          	  "block": "5C330200"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_block method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_block",
+          "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_block method with block id
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_block",
+          "params": {
+              "block": "5C331A00"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_blocks method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_blocks",
+          "params": {
+          }
+      }
+      """
+      Then response will have an error "MethodNotFoundError"
+
+  Scenario: Call get_broadcast method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_broadcast",
+          "params": {
+              "from": "5C330200"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_log method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_log",
+          "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_log method with from param
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_log",
+          "params": {
+              "from": 1546850578
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_me method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_me",
+          "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_message method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_message",
+          "params": {
+          	"message_id": "0005:000017A6"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_message method with block id
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_message",
+          "params": {
+          	"message_id": "0005:000017A6",
+          	"block": "5C331A00"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_message_list method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_message_list",
+          "params": {
+          	"block": "5C331A00"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_message_list method without params
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_message_list",
+          "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_signatures method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_signatures",
+          "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_signatures method with block id
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_signatures",
+          "params": {
+              "block": "5C332600"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_transaction method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_transaction",
+          "params": {
+              "txid": "0005:0000179E:0001"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call get_vipkeys method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "get_vipkeys",
+          "params": {
+              "viphash": "41778D23F86043F4B5570229ED14B0B1F2D7B55948EA94D3C487A9C0EE54F135"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
   Scenario: Call log_account method
       When I send request
       """
