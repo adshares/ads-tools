@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Protect 'get_log' method
 - Typo in `get_vipkeys` method name
+- Method `send_many` takes `wires` as Object instead of array
 
 ## [1.2.1] - 2018-12-30
 ### Fixed
