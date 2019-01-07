@@ -451,3 +451,63 @@ Feature: Proxy with mock ads client
       """
       Then response will have method and params formatted as ads request
 
+  Scenario: Call set_account_status method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "set_account_status",
+          "params": {
+              "address": "0005-0000000B-A302",
+              "status": 2
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call set_node_status method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "set_node_status",
+          "params": {
+              "node": 5,
+              "status": 2
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call unset_account_status method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "unset_account_status",
+          "params": {
+              "address": "0005-0000000B-A302",
+              "status": 2
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call unset_node_status method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "unset_node_status",
+          "params": {
+              "node": 5,
+              "status": 2
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
