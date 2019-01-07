@@ -281,7 +281,7 @@ def set_account_status(**kwargs):
 
 @jsonrpc.method('set_node_status')
 def set_node_status(**kwargs):
-    validate_params(set_node_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    validate_params(set_node_status, kwargs, transaction=True, required={'node': Integer, 'status': Integer})
     return run_write_command('set_node_status', kwargs)
 
 
@@ -293,7 +293,7 @@ def unset_account_status(**kwargs):
 
 @jsonrpc.method('unset_node_status')
 def unset_node_status(**kwargs):
-    validate_params(unset_node_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    validate_params(unset_node_status, kwargs, transaction=True, required={'node': Integer, 'status': Integer})
     return run_write_command('unset_node_status', kwargs)
 
 
