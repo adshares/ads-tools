@@ -268,7 +268,7 @@ def send_one(**kwargs):
 
 @jsonrpc.method('send_many')
 def send_many(**kwargs):
-    validate_params(send_many, kwargs, transaction=True, required={'wires': Array})
+    validate_params(send_many, kwargs, transaction=True, required={'wires': Object})
     #validate_params(send_one, kwargs['wires'], required={'x': Number})
     return run_write_command('send_many', kwargs)
 
