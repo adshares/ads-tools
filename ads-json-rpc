@@ -393,7 +393,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    ads_entrypoint = [ args.ads, '-n0']
+    ads_entrypoint = [args.ads, '-n0']
     free_accounts_limit = args.flimit
     free_accounts_limit_by_ip = args.flimit
     if args.ilimit is not None:
