@@ -48,13 +48,14 @@ ads_trans_args = {
 ads_working_dir = None
 ads_transactions_dir = None
 
-free_accounts_limit = 0
-free_accounts_limit_by_ip = 0
+free_accounts_minimum_interval_in_seconds = 0
+free_accounts_minimum_interval_in_seconds_by_ip = 0
 
 free_accounts_counter = 0
 free_accounts_counter_by_ip = {}
 
 # === helpers ===
+
 
 class AdsError(Error):
     code = -32000
@@ -73,8 +74,8 @@ class AdsError(Error):
 class AdsJSONRPCSite(JSONRPCSite):
     def dispatch(self, req, method=''):
         if req.method == 'OPTIONS':
-            rv = '';
-            status = 200;
+            rv = ''
+            status = 200
         else:
             rv, status = JSONRPCSite.dispatch(self, req, method)
         response = jsonify(rv)
@@ -90,13 +91,13 @@ def validate_params(method, params, required={}, optional={}, transaction=False)
 
     params = {k: v for k, v in params.items() if v is not None}
 
-    req_counter = 0;
+    req_counter = 0
     for k in params:
         if k in required:
-            req_counter += 1;
-            param_type = required[k];
+            req_counter += 1
+            param_type = required[k]
         elif k in optional:
-            param_type = optional[k];
+            param_type = optional[k]
         else:
             raise InvalidParamsError('{0} is not a valid parameter for {1}'.format(k, method.__name__))
 
@@ -108,14 +109,14 @@ def validate_params(method, params, required={}, optional={}, transaction=False)
 
 
 def check_free_accounts_limit(ip):
-    global free_accounts_counter, free_accounts_counter_by_ip, free_accounts_limit, free_accounts_limit_by_ip
+    global free_accounts_counter, free_accounts_counter_by_ip, free_accounts_minimum_interval_in_seconds, free_accounts_minimum_interval_in_seconds_by_ip
 
-    if free_accounts_limit == 0 or free_accounts_limit_by_ip == 0:
+    if free_accounts_minimum_interval_in_seconds == 0 or free_accounts_minimum_interval_in_seconds_by_ip == 0:
         raise AdsError(code=-32020, message="Free accounts are disabled.")
 
     now = time.time()
-    ltime = now - free_accounts_limit;
-    ltime_by_ip = now - free_accounts_limit_by_ip;
+    ltime = now - free_accounts_minimum_interval_in_seconds
+    ltime_by_ip = now - free_accounts_minimum_interval_in_seconds_by_ip
 
     if ip in free_accounts_counter_by_ip and ltime_by_ip <= free_accounts_counter_by_ip[ip]:
         raise AdsError(code=-32022, message="Your free accounts quota has been exceeded, please try again later.")
@@ -269,7 +270,7 @@ def send_one(**kwargs):
 @jsonrpc.method('send_many')
 def send_many(**kwargs):
     validate_params(send_many, kwargs, transaction=True, required={'wires': Object})
-    #validate_params(send_one, kwargs['wires'], required={'x': Number})
+    # validate_params(send_one, kwargs['wires'], required={'x': Number})
     return run_write_command('send_many', kwargs)
 
 
@@ -341,7 +342,7 @@ def run_write_command(command_name, arguments=None, cmd_args=None):
 
 def run_command(command_name, arguments=None, run_get_me=False, working_dir=None):
     global ads_entrypoint
-    ads = ads_entrypoint[:];
+    ads = ads_entrypoint[:]
 
     if not arguments:
         arguments = {}
@@ -385,8 +386,8 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, help='Server port', default=5000)
     parser.add_argument('--host', help='Server listening interface', default='127.0.0.1')
     parser.add_argument('--ads', help='ADS client', default='ads')
-    parser.add_argument('--flimit', type=int, help='Free accounts limit', default=0)
-    parser.add_argument('--ilimit', type=int, help='Free accounts limit (by IP)')
+    parser.add_argument('--flimit', type=int, help='Minimal creation interval of free account in seconds', default=0)
+    parser.add_argument('--ilimit', type=int, help='Minimal creation interval of free account from the same IP address in seconds')
     parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
     parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
@@ -394,10 +395,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     ads_entrypoint = [args.ads, '-n0']
-    free_accounts_limit = args.flimit
-    free_accounts_limit_by_ip = args.flimit
+    free_accounts_minimum_interval_in_seconds = args.flimit
+    free_accounts_minimum_interval_in_seconds_by_ip = args.flimit
     if args.ilimit is not None:
-        free_accounts_limit_by_ip = args.ilimit
+        free_accounts_minimum_interval_in_seconds_by_ip = args.ilimit
     if args.working_dir:
         ads_working_dir = args.working_dir
         ads_transactions_dir = args.working_dir
