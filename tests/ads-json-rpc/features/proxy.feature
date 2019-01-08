@@ -116,6 +116,64 @@ Feature: Proxy with mock ads client
       """
       Then response will have method and params formatted as ads request
 
+  Scenario: Call create_free_account method without params
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "create_free_account",
+          "params": {
+          }
+      }
+      """
+      Then response will have an error "InvalidParamsError"
+
+  Scenario: Call create_free_account method with public key
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "create_free_account",
+          "params": {
+              "public_key": "860BB97F2E355C094CEFB63A7A1245C3D3073E535087FBACEF573C6EC48E17A9",
+              "confirm": "BE3B9AB24AEDC0B7DB99DB32CF62FDC1E6F19829401DAA74156A341B80F9406F369EC87690466C08924811ECE19752A18FA59D93B1364C67C5D76E2CE6942500"
+          }
+      }
+      """
+      Then response will have an error "AdsError"
+
+  Scenario: Call create_free_account method with node
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "create_free_account",
+          "params": {
+              "node": 16
+          }
+      }
+      """
+      Then response will have an error "InvalidParamsError"
+
+  Scenario: Call create_free_account method with public key and node
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "create_free_account",
+          "params": {
+              "public_key": "860BB97F2E355C094CEFB63A7A1245C3D3073E535087FBACEF573C6EC48E17A9",
+              "confirm": "BE3B9AB24AEDC0B7DB99DB32CF62FDC1E6F19829401DAA74156A341B80F9406F369EC87690466C08924811ECE19752A18FA59D93B1364C67C5D76E2CE6942500",
+              "node": 16
+          }
+      }
+      """
+      Then response will have an error "InvalidParamsError"
+
   Scenario: Call create_node method
       When I send request
       """
@@ -124,6 +182,35 @@ Feature: Proxy with mock ads client
           "id": "1",
           "method": "create_node",
           "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call decode_raw method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "decode_raw",
+          "params": {
+              "data": "0405000B00000008000000454C345C05000B000000FA0A266002000000000000000000000000000000000000000000005445414D204144534841524553"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call decode_raw method with signature
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "decode_raw",
+          "params": {
+              "data": "0405000B00000008000000454C345C05000B000000FA0A266002000000000000000000000000000000000000000000005445414D204144534841524553",
+              "signature": "541D041070952A6DC453EB90889F41BD0184B9748CA2E71C0006223A99896BBC0B79C88F0BA3CD006C548A755C32F649BB76552CFF175B804BDD171EA9A57404"
           }
       }
       """
@@ -398,6 +485,48 @@ Feature: Proxy with mock ads client
           "id": "1",
           "method": "log_account",
           "params": {
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call retrieve_funds method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "retrieve_funds",
+          "params": {
+              "address": "0005-00000009-8340"
+          }
+      }
+      """
+      Then response will have method and params formatted as ads request
+
+  Scenario: Call retrieve_funds method without params
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "retrieve_funds",
+          "params": {
+          }
+      }
+      """
+      Then response will have an error "InvalidParamsError"
+
+  Scenario: Call send_again method
+      When I send request
+      """
+      {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "method": "send_again",
+          "params": {
+              "data": "0405000B00000008000000454C345C05000B000000FA0A266002000000000000000000000000000000000000000000005445414D204144534841524553",
+              "signature": "541D041070952A6DC453EB90889F41BD0184B9748CA2E71C0006223A99896BBC0B79C88F0BA3CD006C548A755C32F649BB76552CFF175B804BDD171EA9A57404"
           }
       }
       """
