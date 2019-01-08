@@ -1,7 +1,7 @@
 Feature: Proxy with mock ads client
 
   Scenario: Call broadcast method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -12,10 +12,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call change_account_key method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -27,10 +27,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call change_node_key method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -41,10 +41,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call change_node_key method with node
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -56,10 +56,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call create_account method without params
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -69,10 +69,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call create_account method with public key
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -84,10 +84,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call create_account method with node
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -98,10 +98,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call create_account method with public key and node
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -114,10 +114,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call create_free_account method without params
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -127,10 +127,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "InvalidParamsError"
+    Then response will have an error "InvalidParamsError"
 
   Scenario: Call create_free_account method with public key
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -142,10 +142,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "AdsError"
+    Then response will have an error "AdsError"
 
   Scenario: Call create_free_account method with node
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -156,10 +156,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "InvalidParamsError"
+    Then response will have an error "InvalidParamsError"
 
   Scenario: Call create_free_account method with public key and node
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -172,10 +172,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "InvalidParamsError"
+    Then response will have an error "InvalidParamsError"
 
   Scenario: Call create_node method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -185,10 +185,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call decode_raw method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -199,10 +199,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call decode_raw method with signature
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -214,10 +214,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_account method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -228,10 +228,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_account method without params
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -241,10 +241,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "InvalidParamsError"
+    Then response will have an error "InvalidParamsError"
 
   Scenario: Call get_accounts method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -255,10 +255,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_accounts method with block id
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -270,10 +270,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_block method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -283,10 +283,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_block method with block id
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -297,10 +297,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_blocks method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -310,10 +310,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "MethodNotFoundError"
+    Then response will have an error "MethodNotFoundError"
 
   Scenario: Call get_broadcast method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -324,10 +324,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_log method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -337,10 +337,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_log method with from param
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -351,10 +351,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_me method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -364,10 +364,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_message method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -378,10 +378,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_message method with block id
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -393,10 +393,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_message_list method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -407,10 +407,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_message_list method without params
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -420,10 +420,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_signatures method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -433,10 +433,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_signatures method with block id
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -447,10 +447,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_transaction method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -461,10 +461,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call get_vipkeys method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -475,10 +475,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call log_account method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -488,10 +488,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call retrieve_funds method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -502,10 +502,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call retrieve_funds method without params
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -515,10 +515,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have an error "InvalidParamsError"
+    Then response will have an error "InvalidParamsError"
 
   Scenario: Call send_again method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -530,10 +530,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call send_many method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -547,10 +547,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call send_one method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -562,10 +562,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call send_one method with message
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -578,10 +578,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call set_account_status method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -593,10 +593,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call set_node_status method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -608,10 +608,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call unset_account_status method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -623,10 +623,10 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 
   Scenario: Call unset_node_status method
-      When I send request
+    When I send request
       """
       {
           "jsonrpc": "2.0",
@@ -638,5 +638,5 @@ Feature: Proxy with mock ads client
           }
       }
       """
-      Then response will have method and params formatted as ads request
+    Then response will have method and params formatted as ads request
 

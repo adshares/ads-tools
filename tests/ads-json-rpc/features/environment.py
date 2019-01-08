@@ -11,9 +11,15 @@ ADS_JSON_RPC_SERVER_URL = 'http://{0}:{1}/'.format(ADS_JSON_RPC_SERVER_HOST, ADS
 
 @fixture
 def ads_json_rpc_server(context):
+    command = [
+        '../../ads-json-rpc',
+        '--host={0}'.format(ADS_JSON_RPC_SERVER_HOST),
+        '--port={0}'.format(ADS_JSON_RPC_SERVER_PORT),
+        '--ads=./ads-mock'
+    ]
+
     print('ads_json_rpc_server:starting')
-    context.server = subprocess.Popen(['../../ads-json-rpc', '--host={0}'.format(ADS_JSON_RPC_SERVER_HOST),
-                                       '--port={0}'.format(ADS_JSON_RPC_SERVER_PORT), '--ads=./ads-mock'],
+    context.server = subprocess.Popen(command,
                                       shell=False)
     # TODO recognize when server is up
     sleep(2)
