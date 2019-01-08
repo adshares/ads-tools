@@ -1,5 +1,5 @@
-import subprocess
 from behave import fixture, use_fixture
+from subprocess import Popen
 from time import sleep
 
 ADS_JSON_RPC_SERVER_HOST = '127.0.0.1'
@@ -24,7 +24,7 @@ def ads_json_rpc_server(context):
         command.append('--flimit={0}'.format(FREE_ACCOUNT_TIME_LIMIT_IN_SECONDS))
 
     print('ads_json_rpc_server:starting')
-    context.server = subprocess.Popen(command, shell=False)
+    context.server = Popen(command, shell=False)
     # TODO recognize when server is up
     sleep(2)
     print('ads_json_rpc_server: started, pid=' + str(context.server.pid))
