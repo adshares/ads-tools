@@ -21,10 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - JSON-RPC _get_account_ address parameter
 
-## [1.2.1] - 2018-12-30
-### Fixed
-- JSON-RPC _get_account_ address parameter
-
 ## [1.2.0] - 2018-12-30
 ### Added
 - JSON-RPC proxy server
