@@ -1,9 +1,7 @@
 import json
 import requests
 from behave import *
-
-# TODO import ADS_JSON_RPC_SERVER_URL from ../environment
-URL = 'http://127.0.01:6868'
+from tests.ads_json_rpc.features.environment import ADS_JSON_RPC_SERVER_URL
 
 
 @when('I send request')
@@ -11,7 +9,7 @@ def step_impl(context):
     headers = {'content-type': 'application/json'}
     context.request = json.loads(context.text)
 
-    response = requests.post(URL, headers=headers, json=context.request)
+    response = requests.post(ADS_JSON_RPC_SERVER_URL, headers=headers, json=context.request)
     context.response = response.json()
 
 
