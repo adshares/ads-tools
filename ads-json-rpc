@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import sys
 import argparse
 import json
 import time
@@ -15,13 +16,20 @@ from flask_jsonrpc.exceptions import Error, InvalidParamsError
 from flask_jsonrpc.types import Type
 from waitress import serve
 
+if sys.version_info[0] == 3:
+    string_types = (str,)
+    integer_types = (int,)
+else:
+    string_types = (basestring, str, unicode)
+    integer_types = (int, long)
+
 Array = Type('Array', (object,), {}).I(list, set, frozenset, tuple).N('array')
 Boolean = Type('Boolean', (object,), {}).I(bool).N('boolean')
-Integer = Type('Number', (object,), {}).I(int, long).N('integer')
+Integer = Type('Number', (object,), {}).I(*integer_types).N('integer')
 Null = Type('Null', (object,), {}).I(type(None)).N('null')
-Number = Type('Number', (object,), {}).I(int, long, float, complex).N('number')
+Number = Type('Number', (object,), {}).I(*(integer_types + (float, complex))).N('number')
 Object = Type('Object', (object,), {}).I(dict).N('object')
-String = Type('String', (object,), {}).I(basestring, str, unicode).N('string')
+String = Type('String', (object,), {}).I(*string_types).N('string')
 Any = Type('Any', (object,), {}).I(Array, Boolean, Integer, Null, Number, Object, String).N('any')
 
 # === config and globals ===
