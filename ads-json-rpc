@@ -3,24 +3,33 @@
 
 from __future__ import print_function
 
+import sys
 import argparse
 import json
+import time
 from subprocess import PIPE, Popen
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_jsonrpc import JSONRPC
 from flask_jsonrpc.site import JSONRPCSite
 from flask_jsonrpc.exceptions import Error, InvalidParamsError
 from flask_jsonrpc.types import Type
 from waitress import serve
 
+if sys.version_info[0] == 3:
+    string_types = (str,)
+    integer_types = (int,)
+else:
+    string_types = (basestring, str, unicode)
+    integer_types = (int, long)
+
 Array = Type('Array', (object,), {}).I(list, set, frozenset, tuple).N('array')
 Boolean = Type('Boolean', (object,), {}).I(bool).N('boolean')
-Integer = Type('Number', (object,), {}).I(int, long).N('integer')
+Integer = Type('Number', (object,), {}).I(*integer_types).N('integer')
 Null = Type('Null', (object,), {}).I(type(None)).N('null')
-Number = Type('Number', (object,), {}).I(int, long, float, complex).N('number')
+Number = Type('Number', (object,), {}).I(*(integer_types + (float, complex))).N('number')
 Object = Type('Object', (object,), {}).I(dict).N('object')
-String = Type('String', (object,), {}).I(basestring, str, unicode).N('string')
+String = Type('String', (object,), {}).I(*string_types).N('string')
 Any = Type('Any', (object,), {}).I(Array, Boolean, Integer, Null, Number, Object, String).N('any')
 
 # === config and globals ===
@@ -31,7 +40,7 @@ corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type'
 }
 
-ads_entrypoint = ['ads', '-n0']
+ads_entrypoint = None
 ads_options = {
     '_host': String,
     '_port': Integer,
@@ -47,8 +56,14 @@ ads_trans_args = {
 ads_working_dir = None
 ads_transactions_dir = None
 
+free_accounts_minimum_interval_in_seconds = 0
+free_accounts_minimum_interval_in_seconds_by_ip = 0
+
+free_accounts_counter = 0
+free_accounts_counter_by_ip = {}
 
 # === helpers ===
+
 
 class AdsError(Error):
     code = -32000
@@ -65,12 +80,12 @@ class AdsError(Error):
 
 
 class AdsJSONRPCSite(JSONRPCSite):
-    def dispatch(self, request, method=''):
-        if request.method == 'OPTIONS':
-            rv = '';
-            status = 200;
+    def dispatch(self, req, method=''):
+        if req.method == 'OPTIONS':
+            rv = ''
+            status = 200
         else:
-            rv, status = JSONRPCSite.dispatch(self, request, method)
+            rv, status = JSONRPCSite.dispatch(self, req, method)
         response = jsonify(rv)
         response.headers.extend(corsHeaders)
         return response, status
@@ -82,14 +97,15 @@ def validate_params(method, params, required={}, optional={}, transaction=False)
     if transaction:
         optional.update(ads_trans_args)
 
-    req_counter = 0;
-    param_type = 'None';
+    params = {k: v for k, v in params.items() if v is not None}
+
+    req_counter = 0
     for k in params:
         if k in required:
-            req_counter += 1;
-            param_type = required[k];
+            req_counter += 1
+            param_type = required[k]
         elif k in optional:
-            param_type = optional[k];
+            param_type = optional[k]
         else:
             raise InvalidParamsError('{0} is not a valid parameter for {1}'.format(k, method.__name__))
 
@@ -99,6 +115,27 @@ def validate_params(method, params, required={}, optional={}, transaction=False)
     if req_counter != len(required):
         raise InvalidParamsError('Not enough params provided for {0}'.format(method.__name__))
 
+
+def check_free_accounts_limit(ip):
+    global free_accounts_counter, free_accounts_counter_by_ip, free_accounts_minimum_interval_in_seconds, free_accounts_minimum_interval_in_seconds_by_ip
+
+    if free_accounts_minimum_interval_in_seconds == 0 or free_accounts_minimum_interval_in_seconds_by_ip == 0:
+        raise AdsError(code=-32020, message="Free accounts are disabled.")
+
+    now = time.time()
+    ltime = now - free_accounts_minimum_interval_in_seconds
+    ltime_by_ip = now - free_accounts_minimum_interval_in_seconds_by_ip
+
+    if ip in free_accounts_counter_by_ip and ltime_by_ip <= free_accounts_counter_by_ip[ip]:
+        raise AdsError(code=-32022, message="Your free accounts quota has been exceeded, please try again later.")
+    if ltime <= free_accounts_counter:
+        raise AdsError(code=-32021, message="Free accounts quota has been exceeded, please try again later.")
+
+    free_accounts_counter = now
+    free_accounts_counter_by_ip[ip] = now
+    free_accounts_counter_by_ip = {k: v for k, v in free_accounts_counter_by_ip.items() if v >= ltime_by_ip}
+
+
 # === main app ===
 
 
@@ -107,13 +144,6 @@ jsonrpc = JSONRPC(app, '/', enable_web_browsable_api=False, site=AdsJSONRPCSite(
 
 # === RPC commands ===
 # === read commands ===
-
-
-@jsonrpc.method('get_me')
-def get_me(**kwargs):
-    validate_params(get_me, kwargs)
-    global ads_transactions_dir
-    return run_command('get_me', kwargs, working_dir=ads_transactions_dir)
 
 
 @jsonrpc.method('decode_raw')
@@ -146,12 +176,6 @@ def get_broadcast(**kwargs):
     return run_read_command('get_broadcast', kwargs)
 
 
-@jsonrpc.method('get_log')
-def get_log(**kwargs):
-    validate_params(get_log, kwargs, optional={'from': Integer})
-    return run_read_command('get_log', kwargs)
-
-
 @jsonrpc.method('get_message')
 def get_message(**kwargs):
     validate_params(get_message, kwargs, required={'message_id': String}, optional={'block': String})
@@ -176,16 +200,16 @@ def get_transaction(**kwargs):
     return run_read_command('get_transaction', kwargs)
 
 
-@jsonrpc.method('get_vipkyes')
-def get_vipkyes(**kwargs):
-    validate_params(get_vipkyes, kwargs, required={'viphash': String})
+@jsonrpc.method('get_vipkeys')
+def get_vipkeys(**kwargs):
+    validate_params(get_vipkeys, kwargs, required={'viphash': String})
 
     while True:
         ret = run_read_command('get_blocks')
         if 'updated_blocks' not in ret or int(ret['updated_blocks']) <= 0:
             break
 
-    return run_read_command('get_vipkyes', kwargs)
+    return run_read_command('get_vipkeys', kwargs)
 
 
 @jsonrpc.method('get_signatures')
@@ -247,14 +271,14 @@ def send_again(**kwargs):
 
 @jsonrpc.method('send_one')
 def send_one(**kwargs):
-    validate_params(send_one, kwargs, transaction=True, required={'address': String, 'amount': Number}, optional={'message': String})
+    validate_params(send_one, kwargs, transaction=True, required={'address': String, 'amount': String}, optional={'message': String})
     return run_write_command('send_one', kwargs)
 
 
 @jsonrpc.method('send_many')
 def send_many(**kwargs):
-    validate_params(send_many, kwargs, transaction=True, required={'wires': Array})
-    #validate_params(send_one, kwargs['wires'], required={'x': Number})
+    validate_params(send_many, kwargs, transaction=True, required={'wires': Object})
+    # validate_params(send_one, kwargs['wires'], required={'x': Number})
     return run_write_command('send_many', kwargs)
 
 
@@ -266,7 +290,7 @@ def set_account_status(**kwargs):
 
 @jsonrpc.method('set_node_status')
 def set_node_status(**kwargs):
-    validate_params(set_node_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    validate_params(set_node_status, kwargs, transaction=True, required={'node': Integer, 'status': Integer})
     return run_write_command('set_node_status', kwargs)
 
 
@@ -278,8 +302,36 @@ def unset_account_status(**kwargs):
 
 @jsonrpc.method('unset_node_status')
 def unset_node_status(**kwargs):
-    validate_params(unset_node_status, kwargs, transaction=True, required={'address': String, 'status': Integer})
+    validate_params(unset_node_status, kwargs, transaction=True, required={'node': Integer, 'status': Integer})
     return run_write_command('unset_node_status', kwargs)
+
+
+# === protected commands ===
+
+
+@jsonrpc.method('get_me')
+def get_me(**kwargs):
+    validate_params(get_me, kwargs, transaction=True)
+    global ads_transactions_dir
+    return run_command('get_me', kwargs, working_dir=ads_transactions_dir)
+
+
+@jsonrpc.method('get_log')
+def get_log(**kwargs):
+    validate_params(get_log, kwargs, transaction=True, optional={'from': Integer})
+    global ads_transactions_dir
+    return run_command('get_log', kwargs, working_dir=ads_transactions_dir)
+
+
+# === free account command ===
+
+
+@jsonrpc.method('create_free_account')
+def create_free_account(**kwargs):
+    validate_params(create_free_account, kwargs, required={'public_key': String, 'confirm': String})
+    check_free_accounts_limit(request.environ['REMOTE_ADDR'])
+    global ads_working_dir
+    return run_command('create_account', kwargs, run_get_me=True, working_dir=ads_working_dir)
 
 
 # === end of RPC commands ===
@@ -298,10 +350,12 @@ def run_write_command(command_name, arguments=None, cmd_args=None):
 
 def run_command(command_name, arguments=None, run_get_me=False, working_dir=None):
     global ads_entrypoint
-    ads = ads_entrypoint[:];
+    ads = ads_entrypoint[:]
 
     if not arguments:
         arguments = {}
+    arguments = {k: v for k, v in arguments.items() if v is not None}
+
     for k in arguments.keys():
         if k.startswith('_'):
             ads += ['--{}'.format(k[1:]), str(arguments.pop(k))]
@@ -328,7 +382,7 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     responses = [json.loads(r) for r in responses if r]
     for response in responses:
         if 'error' in response:
-            raise AdsError(message=response['error'], data=err)
+            raise AdsError(message=response['error'])
 
     # Return last response (or first if one element list)
     return responses[-1]
@@ -339,12 +393,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run JSON-RPC proxy server to ADS client')
     parser.add_argument('--port', type=int, help='Server port', default=5000)
     parser.add_argument('--host', help='Server listening interface', default='127.0.0.1')
+    parser.add_argument('--ads', help='ADS client', default='ads')
+    parser.add_argument('--flimit', type=int, help='Minimal creation interval of free account in seconds', default=0)
+    parser.add_argument('--ilimit', type=int, help='Minimal creation interval of free account from the same IP address in seconds')
     parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
     parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
 
     args = parser.parse_args()
 
+    ads_entrypoint = [args.ads, '-n0']
+    free_accounts_minimum_interval_in_seconds = args.flimit
+    free_accounts_minimum_interval_in_seconds_by_ip = args.flimit
+    if args.ilimit is not None:
+        free_accounts_minimum_interval_in_seconds_by_ip = args.ilimit
     if args.working_dir:
         ads_working_dir = args.working_dir
         ads_transactions_dir = args.working_dir

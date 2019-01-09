@@ -113,7 +113,9 @@ ads-monitor -vc txs
 ### JSON-RPC server
 
 ```
-usage: ads-json-rpc [-h] [--port PORT] [--host HOST] [-d] [-w WORKING_DIR]
+usage: ads-json-rpc [-h] [--port PORT] [--host HOST] [--ads ADS]
+                    [--flimit FLIMIT] [--ilimit ILIMIT] [-d] [-w WORKING_DIR]
+                    [-t TRANSACTIONS_DIR]
 
 Run JSON-RPC proxy server to ADS client
 
@@ -121,6 +123,10 @@ optional arguments:
   -h, --help            show this help message and exit
   --port PORT           Server port
   --host HOST           Server listening interface
+  --ads ADS             ADS client
+  --flimit FLIMIT       Minimal creation interval of free account in seconds
+  --ilimit ILIMIT       Minimal creation interval of free account from the
+                        same IP address in seconds
   -d, --debug           Debug mode
   -w WORKING_DIR, --working-dir WORKING_DIR
                         Path to ads working directory

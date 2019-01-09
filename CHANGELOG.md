@@ -6,6 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2019-01-09
+### Added
+- Free accounts support
+- ADS client server argument
+- Behave tests
+### Changed
+- Method `send_one` takes `amount` as String
+### Fixed
+- Protect 'get_log' method
+- Typo in `get_vipkeys` method name
+- Method `send_many` takes `wires` as Object instead of array
+- Method `(un)set_node_status` takes `node` as Integer
+
 ## [1.2.1] - 2018-12-30
 ### Fixed
 - JSON-RPC _get_account_ address parameter
@@ -104,8 +117,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License
 - Readme
 
-[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.3.0...HEAD
 
+[1.3.0]: https://github.com/adshares/ads-tools/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/adshares/ads-tools/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/adshares/ads-tools/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/adshares/ads-tools/compare/v1.0.2...v1.1.0
