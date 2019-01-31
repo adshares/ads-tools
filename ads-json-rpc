@@ -8,6 +8,8 @@ import argparse
 import json
 import time
 from subprocess import PIPE, Popen
+from glob import glob
+from random import randint
 
 from flask import Flask, jsonify, request
 from flask_jsonrpc import JSONRPC
@@ -55,6 +57,7 @@ ads_trans_args = {
 }
 ads_working_dir = None
 ads_transactions_dir = None
+ads_accounts_dir = None
 
 free_accounts_minimum_interval_in_seconds = 0
 free_accounts_minimum_interval_in_seconds_by_ip = 0
@@ -330,8 +333,14 @@ def get_log(**kwargs):
 def create_free_account(**kwargs):
     validate_params(create_free_account, kwargs, required={'public_key': String, 'confirm': String})
     check_free_accounts_limit(request.environ['REMOTE_ADDR'])
-    global ads_working_dir
-    return run_command('create_account', kwargs, run_get_me=True, working_dir=ads_working_dir)
+    global ads_accounts_dir
+
+    working_dir = ads_accounts_dir
+    dirs = glob('{0}/[0-9][0-9][0-9][0-9]/'.format(ads_accounts_dir))
+    if dirs:
+        working_dir = dirs[randint(0, len(dirs) - 1)]
+
+    return run_command('create_account', kwargs, run_get_me=True, working_dir=working_dir)
 
 
 # === end of RPC commands ===
@@ -394,11 +403,12 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, help='Server port', default=5000)
     parser.add_argument('--host', help='Server listening interface', default='127.0.0.1')
     parser.add_argument('--ads', help='ADS client', default='ads')
-    parser.add_argument('--flimit', type=int, help='Minimal creation interval of free account in seconds', default=0)
-    parser.add_argument('--ilimit', type=int, help='Minimal creation interval of free account from the same IP address in seconds')
+    parser.add_argument('-f', '--flimit', type=int, help='Minimal creation interval of free account in seconds', default=0)
+    parser.add_argument('-i', '--ilimit', type=int, help='Minimal creation interval of free account from the same IP address in seconds')
     parser.add_argument('-d', '--debug', action='store_true', help='Debug mode')
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
     parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
+    parser.add_argument('-a', '--accounts-dir', help='Path to ads working directories for creating free accounts')
 
     args = parser.parse_args()
 
@@ -410,8 +420,11 @@ if __name__ == '__main__':
     if args.working_dir:
         ads_working_dir = args.working_dir
         ads_transactions_dir = args.working_dir
+        ads_accounts_dir = args.working_dir
     if args.transactions_dir:
         ads_transactions_dir = args.transactions_dir
+    if args.accounts_dir:
+        ads_accounts_dir = args.accounts_dir
 
     if args.debug:
         app.run(host=args.host, port=args.port, debug=args.debug)
