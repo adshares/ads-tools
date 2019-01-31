@@ -337,7 +337,6 @@ def create_free_account(**kwargs):
 
     working_dir = ads_accounts_dir
     dirs = glob('{0}/[0-9][0-9][0-9][0-9]/'.format(ads_accounts_dir))
-    print(dirs)
     if dirs:
         working_dir = dirs[randint(0, len(dirs) - 1)]
 
