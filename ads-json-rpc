@@ -123,16 +123,16 @@ def check_free_accounts_limit(ip):
     global free_accounts_counter, free_accounts_counter_by_ip, free_accounts_minimum_interval_in_seconds, free_accounts_minimum_interval_in_seconds_by_ip
 
     if free_accounts_minimum_interval_in_seconds == 0 or free_accounts_minimum_interval_in_seconds_by_ip == 0:
-        raise AdsError(code=-32020, message="Free accounts are disabled.")
+        raise AdsError(code=-400, message="Free accounts are disabled.")
 
     now = time.time()
     ltime = now - free_accounts_minimum_interval_in_seconds
     ltime_by_ip = now - free_accounts_minimum_interval_in_seconds_by_ip
 
     if ip in free_accounts_counter_by_ip and ltime_by_ip <= free_accounts_counter_by_ip[ip]:
-        raise AdsError(code=-32022, message="Your free accounts quota has been exceeded, please try again later.")
+        raise AdsError(code=-402, message="Your free accounts quota has been exceeded, please try again later.")
     if ltime <= free_accounts_counter:
-        raise AdsError(code=-32021, message="Free accounts quota has been exceeded, please try again later.")
+        raise AdsError(code=-401, message="Free accounts quota has been exceeded, please try again later.")
 
     free_accounts_counter = now
     free_accounts_counter_by_ip[ip] = now
@@ -177,6 +177,12 @@ def get_block(**kwargs):
 def get_broadcast(**kwargs):
     validate_params(get_broadcast, kwargs, optional={'from': String})
     return run_read_command('get_broadcast', kwargs)
+
+
+@jsonrpc.method('get_log')
+def get_log(**kwargs):
+    validate_params(get_log, kwargs, required={'address': String}, optional={'from': Integer, 'type': String})
+    return run_read_command('get_log', kwargs)
 
 
 @jsonrpc.method('get_message')
@@ -319,13 +325,6 @@ def get_me(**kwargs):
     return run_command('get_me', kwargs, working_dir=ads_transactions_dir)
 
 
-@jsonrpc.method('get_log')
-def get_log(**kwargs):
-    validate_params(get_log, kwargs, transaction=True, optional={'from': Integer})
-    global ads_transactions_dir
-    return run_command('get_log', kwargs, working_dir=ads_transactions_dir)
-
-
 # === free account command ===
 
 
@@ -391,7 +390,13 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     responses = [json.loads(r) for r in responses if r]
     for response in responses:
         if 'error' in response:
-            raise AdsError(message=response['error'])
+            message = response['error']
+            code = data = None
+            if 'error_code' in response:
+                code = response['error_code']
+            if 'error_info' in response:
+                data = response['error_info']
+            raise AdsError(message, code, data)
 
     # Return last response (or first if one element list)
     return responses[-1]
