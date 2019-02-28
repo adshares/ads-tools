@@ -5,109 +5,111 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [MONITOR] JSON with all metrics
 
 ## [1.3.2] - 2019-02-25
 ### Added
-- Human friendly error messages
-- Support for `type` and `address` arguments in `get_log` method
+- [JSON-RPC] Human friendly error messages
+- [JSON-RPC] Support for `type` and `address` arguments in `get_log` method
 ### Changed
-- Unprotect `get_log` method
+- [JSON-RPC] Unprotect `get_log` method
 
 ## [1.3.1] - 2019-01-31
 ### Added
-- Multiple nodes with free accounts support
+- [JSON-RPC] Multiple nodes with free accounts support
 
 ## [1.3.0] - 2019-01-09
 ### Added
-- Free accounts support
-- ADS client server argument
-- Behave tests
+- [JSON-RPC] Free accounts support
+- [JSON-RPC] ADS client server argument
+- [JSON-RPC] Behave tests
 ### Changed
-- Method `send_one` takes `amount` as String
+- [JSON-RPC] Method `send_one` takes `amount` as String
 ### Fixed
-- Protect 'get_log' method
-- Typo in `get_vipkeys` method name
-- Method `send_many` takes `wires` as Object instead of array
-- Method `(un)set_node_status` takes `node` as Integer
+- [JSON-RPC] Protect 'get_log' method
+- [JSON-RPC] Typo in `get_vipkeys` method name
+- [JSON-RPC] Method `send_many` takes `wires` as Object instead of array
+- [JSON-RPC] Method `(un)set_node_status` takes `node` as Integer
 
 ## [1.2.1] - 2018-12-30
 ### Fixed
-- JSON-RPC _get_account_ address parameter
+- [JSON-RPC] _get_account_ address parameter
 
 ## [1.2.0] - 2018-12-30
 ### Added
-- JSON-RPC proxy server
-- JSON-RPC read-only mode
-- JSON-RPC all commands support
+- [JSON-RPC] Proxy server
+- [JSON-RPC] Read-only mode
+- [JSON-RPC] All commands support
 
 ## [1.1.0] - 2018-10-30
 ### Added
-- Start from backup
-- Fast sync start
+- [SERVICE] Start from backup
+- [SERVICE] Fast sync start
 
 ### Changed
-- Genesis file can only be used as an aid for configuration
+- [SERVICE] Genesis file can only be used as an aid for configuration
 
 ### Removed
-- Start from genesis file
+- [SERVICE] Start from genesis file
 
 ## [1.0.2] - 2018-10-08
 ### Fixed
-- Converting a secret key into a public key
+- [SERVICE] Converting a secret key into a public key
 
 ## [1.0.1] - 2018-09-20
 ### Changed
-- Log level support
-- Improve log rotation support
+- [MONITOR] Log level support
+- [SERVICE] Improve log rotation support
 
 ## [1.0.0] - 2018-08-24
 ### Added
-- Hostname validation (only ipv4 allowed)
-- Support for database sync in monitor
+- [SERVICE] Hostname validation (only ipv4 allowed)
+- [MONITOR] Support for database sync in monitor
 
 ### Changed
-- Return errors' codes in status monitor
-- Print errors on stderr
-- Include peers in command status
-- Checking node configuration in continuous mode
+- [MONITOR] Return errors' codes in status monitor
+- [MONITOR] Print errors on stderr
+- [MONITOR] Include peers in command status
+- [MONITOR] Checking node configuration in continuous mode
 
 ### Fixed
-- Support for new lines in stderr
+- [MONITOR] Support for new lines in stderr
 
 ## [0.0.5] - 2018-08-13
 ### Added
-- Validation of node identifier (4 character hex)
-- Wait before checking and reporting node start
+- [SERVICE] Validation of node identifier (4 character hex)
+- [SERVICE] Wait before checking and reporting node start
 
 ### Changed
-- Support for not configured and not started node in status
-- Refactoring for SONAR and reduced complexity
-- Fix naming to convention
-- More (re)startup options automatically detected and handled
+- [MONITOR] Support for not configured and not started node in status
+- [SERVICE] Refactoring for SONAR and reduced complexity
+- [SERVICE] Fix naming to convention
+- [SERVICE] More (re)startup options automatically detected and handled
 
 ## [0.0.4] - 2018-08-11
 ### Added
-- Network's start countdown in status
-- Cleaning previous configuration
+- [MONITOR] Network's start countdown in status
+- [SERVICE] Cleaning previous configuration
 
 ### Changed
-- Force flag in configuration
+- [SERVICE] Force flag in configuration
 
 ## [0.0.3] - 2018-08-10
 ### Added
-- Support for fast sync without history
-- More explicit messages
+- [SERVICE] Support for fast sync without history
+- [SERVICE] More explicit messages
 
 ### Changed
-- Genesis file saving (no modifications)
-- Refactoring for clarity
+- [SERVICE] Genesis file saving (no modifications)
+- [SERVICE] Refactoring for clarity
 
 ### Removed
-- Invalid comment
+- [MONITOR] Invalid comment
 
 ### Fixed
-- Fixed wrong format for svid in options.cfg [#2]
-- Removed `realpath` usage [#1]
+- [SERVICE] Fixed wrong format for svid in options.cfg [#2]
+- [MONITOR] Removed `realpath` usage [#1]
 
 ## [0.0.2] - 2018-08-08
 ### Added
