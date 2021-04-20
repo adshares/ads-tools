@@ -61,8 +61,12 @@ clock() {
 		fi
     fi
 
+    item=$1
+    if [[ "$1" = "time" || "$1" = "net" ]]; then
+        item=peers
+    fi
     sync_regex="^([0-9]+):\[([0-9]+)\]\ (\[.*\]\ )?([A-Z\ ]+:\ )?START\ syncing\ header\ ([0-9A-F]+)$"
-    clock_regex="^([0-9]+):\[([0-9]+)\]\ (\[.*\]\ )?([A-Z\ ]+:\ )?CLOCK:\ ([0-9A-F]+).*\ $1:([0-9]+)"
+    clock_regex="^([0-9]+):\[([0-9]+)\]\ (\[.*\]\ )?([A-Z\ ]+:\ )?CLOCK:\ ([0-9A-F]+).*\ ${item}:([0-9]+).*\ \[,?([,0-9]*)\]"
 
     sync_line=`tac $2 | grep -n "START syncing header" | head -1`
     clock_line=`tac $2 | grep -n CLOCK | head -1`
@@ -78,6 +82,11 @@ clock() {
 		clock_time=${BASH_REMATCH[2]}
 		clock_count=${BASH_REMATCH[5]}
 		clock_val=${BASH_REMATCH[6]}
+	    if [ "$1" = "time" ]; then
+            clock_val=${clock_time}
+        elif [ "$1" = "net" ]; then
+            clock_val=${BASH_REMATCH[7]}
+        fi
 	fi
 
 	if [ -n "${sync_num}" ] && ([ -z "${clock_num}" ] || [ ${sync_num} -le ${clock_num} ]); then
@@ -137,6 +146,24 @@ status() {
 # Number of currently open connections
 connections() {
     clock "ticket" $1 $2
+}
+
+# JSON with all metrics
+all_metrics() {
+    time=$(clock "time" $1)
+    time=$((( time / 512 ) * 512))
+    block=$(printf "%X\n" $time)
+    network=$(clock "net" $1)
+    echo "\
+{\
+\"date\":\"$(date --iso-8601=seconds)\",\
+\"block\":\"${block}\",\
+\"status\":$(status $1),\
+\"transactions\":$(txs $1),\
+\"peers\":$(peers $1),\
+\"connections\":$(connections $1),\
+\"network\":[${network}]\
+}"
 }
 
 # Check node configuration
@@ -209,6 +236,7 @@ show_usage() {
     echo "  txs                      the number of awaiting transactions"
     echo "  peers                    the number of active peers"
     echo "  conns                    the number of currently open connections"
+    echo "  all                      JSON with all metrics"
     echo
     echo "Options"
     echo "  -w, --working-dir <DIR>  working directory (default '${default_working_dir}')"
@@ -300,6 +328,7 @@ case "${cmd}" in
     txs)    command="txs ${stderr_path} ${verbose}" ;;
     peers)  command="peers ${stderr_path} ${verbose}" ;;
     conns)  command="connections ${stderr_path} ${verbose}" ;;
+    all)    command="all_metrics ${stderr_path}" ;;
     *)      show_error "Unsupported command \"${cmd}\"" ;;
 esac
 

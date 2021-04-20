@@ -167,6 +167,24 @@ def get_accounts(**kwargs):
     return run_read_command('get_accounts', kwargs)
 
 
+@jsonrpc.method('find_accounts')
+def find_accounts(**kwargs):
+    validate_params(find_accounts, kwargs, required={'public_key': String})
+    result = []
+    node = 1
+    while True:
+        try:
+            info = run_read_command('get_accounts', {'node': node})
+            for account in info['accounts']:
+                if kwargs['public_key'] == account['public_key']:
+                    result.append(account)
+            node += 1
+        except AdsError:
+            break
+
+    return {'accounts': result}
+
+
 @jsonrpc.method('get_block')
 def get_block(**kwargs):
     validate_params(get_block, kwargs, optional={'block': String})
