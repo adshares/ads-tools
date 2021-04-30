@@ -65,6 +65,8 @@ free_accounts_minimum_interval_in_seconds_by_ip = 0
 free_accounts_counter = 0
 free_accounts_counter_by_ip = {}
 
+gates = []
+
 # === helpers ===
 
 
@@ -360,6 +362,39 @@ def create_free_account(**kwargs):
     return run_command('create_account', kwargs, run_get_me=True, working_dir=working_dir)
 
 
+# === swap gates commands ===
+
+
+@jsonrpc.method('get_gates')
+def get_gates(**kwargs):
+    validate_params(get_gates, kwargs)
+    global gates
+    items = []
+    for code in gates:
+        items.append({
+            'code': code,
+            'name': gates[code]['name'],
+            'address': gates[code]['address'],
+            'format': gates[code]['format'],
+            'prefix': gates[code]['prefix'],
+        })
+    return items
+
+
+@jsonrpc.method('get_gate_fee')
+def get_gates(**kwargs):
+    validate_params(get_gates, kwargs, required={'gate_code': String, 'amount': Number})
+    global gates
+
+    if kwargs['gate_code'] not in gates:
+        raise Error('Cannot find gate {0}'.format(kwargs['gate_code']))
+
+    gate = gates[kwargs['gate_code']]
+    amount = kwargs['amount']
+
+    return max(gate['min_fee'], amount * gate['fee_rate'] + gate['fixed_fee'])
+
+
 # === end of RPC commands ===
 
 
@@ -420,6 +455,29 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     return responses[-1]
 
 
+def load_gates():
+    items = {}
+    try:
+        with open('gates.json') as json_file:
+            for gate in json.load(json_file):
+                if 'code' not in gate:
+                    raise Error('Gate code is required')
+                if 'address' not in gate:
+                    raise Error('Gate address is required')
+                items[gate['code']] = {
+                    'name': gate['name'] if 'name' in gate else gate['code'],
+                    'address': gate['address'],
+                    'format': gate['format'] if 'format' in gate else 'eth',
+                    'prefix': gate['prefix'] if 'prefix' in gate else None,
+                    'fee_rate': gate['fee_rate'] if 'fee_rate' in gate else 0.001,
+                    'fixed_fee': gate['fixed_fee'] if 'fixed_fee' in gate else 0,
+                    'min_fee': gate['min_fee'] if 'min_fee' in gate else 1,
+                }
+    except IOError:
+        items = {}
+    return items
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Run JSON-RPC proxy server to ADS client')
@@ -449,7 +507,10 @@ if __name__ == '__main__':
     if args.accounts_dir:
         ads_accounts_dir = args.accounts_dir
 
+    gates = load_gates()
+
     if args.debug:
+        print(' # {0} gates loaded'.format(len(gates)))
         app.run(host=args.host, port=args.port, debug=args.debug)
     else:
         serve(app, host=args.host, port=args.port)

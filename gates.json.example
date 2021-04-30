@@ -1,0 +1,12 @@
+[
+  {
+    "code": "SG1",
+    "name": "Swap gate 1",
+    "address": "0001-00000001-8B4E",
+    "format": "eth",
+    "prefix": "F0E1",
+    "fee_rate": 0.001,
+    "fixed_fee": 0.05,
+    "min_fee": 1.25,
+  }
+]
