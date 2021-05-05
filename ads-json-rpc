@@ -378,12 +378,12 @@ def get_gates(**kwargs):
             'format': gates[code]['format'],
             'prefix': gates[code]['prefix'],
         })
-    return items
+    return {'gates': items}
 
 
 @jsonrpc.method('get_gate_fee')
-def get_gates(**kwargs):
-    validate_params(get_gates, kwargs, required={'gate_code': String, 'amount': Number})
+def get_gate_fee(**kwargs):
+    validate_params(get_gate_fee, kwargs, required={'gate_code': String, 'amount': Integer, 'address': String})
     global gates
 
     if kwargs['gate_code'] not in gates:
@@ -392,7 +392,8 @@ def get_gates(**kwargs):
     gate = gates[kwargs['gate_code']]
     amount = kwargs['amount']
 
-    return max(gate['min_fee'], amount * gate['fee_rate'] + gate['fixed_fee'])
+    fee = amount * 0.1
+    return {'fee': fee}
 
 
 # === end of RPC commands ===
@@ -410,6 +411,7 @@ def run_write_command(command_name, arguments=None, cmd_args=None):
 
 
 def run_command(command_name, arguments=None, run_get_me=False, working_dir=None):
+
     global ads_entrypoint
     ads = ads_entrypoint[:]
 
@@ -417,19 +419,22 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
         arguments = {}
     arguments = {k: v for k, v in arguments.items() if v is not None}
 
+    args = {}
     for k in arguments.keys():
         if k.startswith('_'):
-            ads += ['--{}'.format(k[1:]), str(arguments.pop(k))]
+            ads += ['--{}'.format(k[1:]), str(arguments[k])]
+        else:
+            args.update({k: arguments[k]})
     if working_dir:
         ads += ['--work-dir', working_dir]
-    arguments.update({'run': command_name})
+    args.update({'run': command_name})
 
     ps = Popen(ads, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     if run_get_me:
-        out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(arguments) + '\n')
+        out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(args) + '\n')
     else:
-        out, err = ps.communicate(json.dumps(arguments) + '\n')
+        out, err = ps.communicate(json.dumps(args) + '\n')
 
     if not out:
         raise AdsError(data=err)
@@ -464,14 +469,14 @@ def load_gates():
                     raise Error('Gate code is required')
                 if 'address' not in gate:
                     raise Error('Gate address is required')
+                if 'fee_url' not in gate:
+                    raise Error('Gate fee URL is required')
                 items[gate['code']] = {
                     'name': gate['name'] if 'name' in gate else gate['code'],
                     'address': gate['address'],
                     'format': gate['format'] if 'format' in gate else 'eth',
                     'prefix': gate['prefix'] if 'prefix' in gate else None,
-                    'fee_rate': gate['fee_rate'] if 'fee_rate' in gate else 0.001,
-                    'fixed_fee': gate['fixed_fee'] if 'fixed_fee' in gate else 0,
-                    'min_fee': gate['min_fee'] if 'min_fee' in gate else 1,
+                    'fee_url': gate['fee_url'],
                 }
     except IOError:
         items = {}
