@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.0]
 ### Added
-- [JSON-RPC] Swap gates support
+- [JSON-RPC] Wrapped ADS gateways support
 
 ## [1.4.0]
 ### Added

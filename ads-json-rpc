@@ -7,6 +7,7 @@ import sys
 import argparse
 import json
 import time
+import requests
 from subprocess import PIPE, Popen
 from glob import glob
 from random import randint
@@ -65,7 +66,7 @@ free_accounts_minimum_interval_in_seconds_by_ip = 0
 free_accounts_counter = 0
 free_accounts_counter_by_ip = {}
 
-gates = []
+gateways = []
 
 # === helpers ===
 
@@ -362,38 +363,44 @@ def create_free_account(**kwargs):
     return run_command('create_account', kwargs, run_get_me=True, working_dir=working_dir)
 
 
-# === swap gates commands ===
+# === wrap gateways commands ===
 
 
-@jsonrpc.method('get_gates')
-def get_gates(**kwargs):
-    validate_params(get_gates, kwargs)
-    global gates
+@jsonrpc.method('get_gateways')
+def get_gateways(**kwargs):
+    validate_params(get_gateways, kwargs)
+    global gateways
     items = []
-    for code in gates:
+    for code in gateways:
         items.append({
             'code': code,
-            'name': gates[code]['name'],
-            'address': gates[code]['address'],
-            'format': gates[code]['format'],
-            'prefix': gates[code]['prefix'],
+            'name': gateways[code]['name'],
+            'description': gateways[code]['description'],
+            'address': gateways[code]['address'],
+            'format': gateways[code]['format'],
+            'prefix': gateways[code]['prefix'],
         })
-    return {'gates': items}
+    return {'gateways': items}
 
 
-@jsonrpc.method('get_gate_fee')
-def get_gate_fee(**kwargs):
-    validate_params(get_gate_fee, kwargs, required={'gate_code': String, 'amount': Integer, 'address': String})
-    global gates
+@jsonrpc.method('get_gateway_fee')
+def get_gateway_fee(**kwargs):
+    validate_params(get_gateway_fee, kwargs, required={'code': String, 'amount': Integer, 'address': String})
+    global gateways
 
-    if kwargs['gate_code'] not in gates:
-        raise Error('Cannot find gate {0}'.format(kwargs['gate_code']))
+    if kwargs['code'] not in gateways:
+        raise Error('Cannot find gateway {0}'.format(kwargs['code']))
 
-    gate = gates[kwargs['gate_code']]
-    amount = kwargs['amount']
-
-    fee = amount * 0.1
-    return {'fee': fee}
+    gateway = gateways[kwargs['code']]
+    params = {
+        'gate': kwargs['code'],
+        'amount': kwargs['amount'],
+        'address': kwargs['address'],
+    }
+    response = requests.get(url=gateway['fee_url'], params=params).json()
+    if 'error' in response:
+        raise AdsError(response['error'])
+    return {'fee': response['fee'] if 'fee' in response else None}
 
 
 # === end of RPC commands ===
@@ -460,23 +467,24 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     return responses[-1]
 
 
-def load_gates():
+def load_gateways():
     items = {}
     try:
-        with open('gates.json') as json_file:
-            for gate in json.load(json_file):
-                if 'code' not in gate:
+        with open('gateways.json') as json_file:
+            for gateway in json.load(json_file):
+                if 'code' not in gateway:
                     raise Error('Gate code is required')
-                if 'address' not in gate:
+                if 'address' not in gateway:
                     raise Error('Gate address is required')
-                if 'fee_url' not in gate:
+                if 'fee_url' not in gateway:
                     raise Error('Gate fee URL is required')
-                items[gate['code']] = {
-                    'name': gate['name'] if 'name' in gate else gate['code'],
-                    'address': gate['address'],
-                    'format': gate['format'] if 'format' in gate else 'eth',
-                    'prefix': gate['prefix'] if 'prefix' in gate else None,
-                    'fee_url': gate['fee_url'],
+                items[gateway['code']] = {
+                    'name': gateway['name'] if 'name' in gateway else gateway['code'],
+                    'description': gateway['description'] if 'description' in gateway else None,
+                    'address': gateway['address'],
+                    'format': gateway['format'] if 'format' in gateway else 'eth',
+                    'prefix': gateway['prefix'] if 'prefix' in gateway else None,
+                    'fee_url': gateway['fee_url'],
                 }
     except IOError:
         items = {}
@@ -512,10 +520,10 @@ if __name__ == '__main__':
     if args.accounts_dir:
         ads_accounts_dir = args.accounts_dir
 
-    gates = load_gates()
+    gateways = load_gateways()
 
     if args.debug:
-        print(' # {0} gates loaded'.format(len(gates)))
+        print(' # {0} gateways loaded'.format(len(gateways)))
         app.run(host=args.host, port=args.port, debug=args.debug)
     else:
         serve(app, host=args.host, port=args.port)
