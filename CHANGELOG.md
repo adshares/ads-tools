@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0]
+## [1.5.0] - 2021-05-06
 ### Added
-- [JSON-RPC] Wrapped ADS gateways support
+- [JSON-RPC] Wrapped ADS support
 
-## [1.4.0]
+## [1.4.0] - 2021-04-20
 ### Added
 - [JSON-RPC] Finding accounts support
 - [MONITOR] JSON with all metrics
