@@ -465,10 +465,10 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     return responses[-1]
 
 
-def load_gateways():
+def load_gateways(file):
     items = {}
     try:
-        with open('gateways.json') as json_file:
+        with open(file) as json_file:
             for gateway in json.load(json_file):
                 if 'code' not in gateway:
                     raise Error('Gate code is required')
@@ -501,6 +501,7 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
     parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
     parser.add_argument('-a', '--accounts-dir', help='Path to ads working directories for creating free accounts')
+    parser.add_argument('-g', '--gateways', help='Path to gateways config file')
 
     args = parser.parse_args()
 
@@ -518,7 +519,7 @@ if __name__ == '__main__':
     if args.accounts_dir:
         ads_accounts_dir = args.accounts_dir
 
-    gateways = load_gateways()
+    gateways = load_gateways(args.gateways) if args.gateways else {}
 
     if args.debug:
         print(' # {0} gateways loaded'.format(len(gateways)))
