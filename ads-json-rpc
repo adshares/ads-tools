@@ -7,6 +7,7 @@ import sys
 import argparse
 import json
 import time
+import requests
 from subprocess import PIPE, Popen
 from glob import glob
 from random import randint
@@ -64,6 +65,8 @@ free_accounts_minimum_interval_in_seconds_by_ip = 0
 
 free_accounts_counter = 0
 free_accounts_counter_by_ip = {}
+
+gateways = []
 
 # === helpers ===
 
@@ -171,16 +174,14 @@ def get_accounts(**kwargs):
 def find_accounts(**kwargs):
     validate_params(find_accounts, kwargs, required={'public_key': String})
     result = []
-    node = 1
-    while True:
+    for node in range(1, 64):
         try:
             info = run_read_command('get_accounts', {'node': node})
             for account in info['accounts']:
                 if kwargs['public_key'] == account['public_key']:
                     result.append(account)
-            node += 1
         except AdsError:
-            break
+            continue
 
     return {'accounts': result}
 
@@ -360,6 +361,46 @@ def create_free_account(**kwargs):
     return run_command('create_account', kwargs, run_get_me=True, working_dir=working_dir)
 
 
+# === wrap gateways commands ===
+
+
+@jsonrpc.method('get_gateways')
+def get_gateways(**kwargs):
+    validate_params(get_gateways, kwargs)
+    global gateways
+    items = []
+    for code in gateways:
+        items.append({
+            'code': code,
+            'name': gateways[code]['name'],
+            'description': gateways[code]['description'],
+            'address': gateways[code]['address'],
+            'format': gateways[code]['format'],
+            'prefix': gateways[code]['prefix'],
+        })
+    return {'gateways': items}
+
+
+@jsonrpc.method('get_gateway_fee')
+def get_gateway_fee(**kwargs):
+    validate_params(get_gateway_fee, kwargs, required={'code': String, 'amount': Integer, 'address': String})
+    global gateways
+
+    if kwargs['code'] not in gateways:
+        raise Error('Cannot find gateway {0}'.format(kwargs['code']))
+
+    gateway = gateways[kwargs['code']]
+    params = {
+        'gate': kwargs['code'],
+        'amount': kwargs['amount'],
+        'address': kwargs['address'],
+    }
+    response = requests.get(url=gateway['fee_url'], params=params).json()
+    if 'error' in response:
+        raise AdsError(response['error'])
+    return {'fee': response['fee'] if 'fee' in response else None}
+
+
 # === end of RPC commands ===
 
 
@@ -375,6 +416,7 @@ def run_write_command(command_name, arguments=None, cmd_args=None):
 
 
 def run_command(command_name, arguments=None, run_get_me=False, working_dir=None):
+
     global ads_entrypoint
     ads = ads_entrypoint[:]
 
@@ -382,19 +424,22 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
         arguments = {}
     arguments = {k: v for k, v in arguments.items() if v is not None}
 
+    args = {}
     for k in arguments.keys():
         if k.startswith('_'):
-            ads += ['--{}'.format(k[1:]), str(arguments.pop(k))]
+            ads += ['--{}'.format(k[1:]), str(arguments[k])]
+        else:
+            args.update({k: arguments[k]})
     if working_dir:
         ads += ['--work-dir', working_dir]
-    arguments.update({'run': command_name})
+    args.update({'run': command_name})
 
     ps = Popen(ads, stdout=PIPE, stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
     if run_get_me:
-        out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(arguments) + '\n')
+        out, err = ps.communicate('{"run":"get_me"}\n' + json.dumps(args) + '\n')
     else:
-        out, err = ps.communicate(json.dumps(arguments) + '\n')
+        out, err = ps.communicate(json.dumps(args) + '\n')
 
     if not out:
         raise AdsError(data=err)
@@ -420,6 +465,30 @@ def run_command(command_name, arguments=None, run_get_me=False, working_dir=None
     return responses[-1]
 
 
+def load_gateways(file):
+    items = {}
+    try:
+        with open(file) as json_file:
+            for gateway in json.load(json_file):
+                if 'code' not in gateway:
+                    raise Error('Gate code is required')
+                if 'address' not in gateway:
+                    raise Error('Gate address is required')
+                if 'fee_url' not in gateway:
+                    raise Error('Gate fee URL is required')
+                items[gateway['code']] = {
+                    'name': gateway['name'] if 'name' in gateway else gateway['code'],
+                    'description': gateway['description'] if 'description' in gateway else None,
+                    'address': gateway['address'],
+                    'format': gateway['format'] if 'format' in gateway else 'eth',
+                    'prefix': gateway['prefix'] if 'prefix' in gateway else None,
+                    'fee_url': gateway['fee_url'],
+                }
+    except IOError:
+        items = {}
+    return items
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Run JSON-RPC proxy server to ADS client')
@@ -432,6 +501,7 @@ if __name__ == '__main__':
     parser.add_argument('-w', '--working-dir', help='Path to ads working directory')
     parser.add_argument('-t', '--transactions-dir', help='Path to ads working directory for transactions')
     parser.add_argument('-a', '--accounts-dir', help='Path to ads working directories for creating free accounts')
+    parser.add_argument('-g', '--gateways', help='Path to gateways config file')
 
     args = parser.parse_args()
 
@@ -449,7 +519,10 @@ if __name__ == '__main__':
     if args.accounts_dir:
         ads_accounts_dir = args.accounts_dir
 
+    gateways = load_gateways(args.gateways) if args.gateways else {}
+
     if args.debug:
+        print(' # {0} gateways loaded'.format(len(gateways)))
         app.run(host=args.host, port=args.port, debug=args.debug)
     else:
         serve(app, host=args.host, port=args.port)

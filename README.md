@@ -36,7 +36,7 @@ Several quick start options are available:
 
 ```
 sudo apt-get install python-pip
-pip install flask flask_jsonrpc waitress
+pip install flask flask_jsonrpc waitress requests
 ```
 
 ## Usage

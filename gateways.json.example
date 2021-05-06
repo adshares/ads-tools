@@ -1,0 +1,11 @@
+[
+  {
+    "code": "SG1",
+    "name": "Swap gate 1",
+    "description": "The best swap gate"
+    "address": "0001-00000001-8B4E",
+    "format": "eth",
+    "prefix": "F0E1",
+    "fee_url": "example.com",
+  }
+]
