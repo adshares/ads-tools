@@ -398,20 +398,26 @@ def get_gateway_fee(**kwargs):
         'amount': kwargs['amount'],
         'address': kwargs['address'],
     }
-    print()
     response = requests.get(url=gateway['fee_url'], params=params).json()
     if 'error' in response:
         raise AdsError(response['error'])
     return {'fee': response['fee'] if 'fee' in response else None}
 
 
-# === my ip command ===
+# === get my ip command ===
 
 
-@jsonrpc.method('my_ip')
-def my_ip(**kwargs):
-
+@jsonrpc.method('get_my_ip')
+def get_my_ip():
 	return request.headers.get('X-Forwarded-For') or request.environ.get('REMOTE_ADDR')
+
+
+# === timestamp command ===
+
+
+@jsonrpc.method('get_timestamp')
+def get_timestamp():
+	return time.time()
 
 
 # === end of RPC commands ===
