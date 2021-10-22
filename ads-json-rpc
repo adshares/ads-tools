@@ -350,7 +350,7 @@ def get_me(**kwargs):
 @jsonrpc.method('create_free_account')
 def create_free_account(**kwargs):
     validate_params(create_free_account, kwargs, required={'public_key': String, 'confirm': String})
-    check_free_accounts_limit(request.environ['REMOTE_ADDR'])
+    check_free_accounts_limit(request.headers.get('X-Forwarded-For') or request.environ.get('REMOTE_ADDR'))
     global ads_accounts_dir
 
     working_dir = ads_accounts_dir
@@ -381,6 +381,9 @@ def get_gateways(**kwargs):
     return {'gateways': items}
 
 
+# === get gateway fee ===
+
+
 @jsonrpc.method('get_gateway_fee')
 def get_gateway_fee(**kwargs):
     validate_params(get_gateway_fee, kwargs, required={'code': String, 'amount': Integer, 'address': String})
@@ -399,6 +402,22 @@ def get_gateway_fee(**kwargs):
     if 'error' in response:
         raise AdsError(response['error'])
     return {'fee': response['fee'] if 'fee' in response else None}
+
+
+# === get my ip command ===
+
+
+@jsonrpc.method('get_my_ip')
+def get_my_ip():
+	return request.headers.get('X-Forwarded-For') or request.environ.get('REMOTE_ADDR')
+
+
+# === timestamp command ===
+
+
+@jsonrpc.method('get_timestamp')
+def get_timestamp():
+	return time.time()
 
 
 # === end of RPC commands ===
