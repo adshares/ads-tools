@@ -23,8 +23,8 @@ Several quick start options are available:
 - Install from Ubuntu PPA (recommended):
   ```
   sudo add-apt-repository ppa:adshares/releases
-  sudo apt-get update
-  sudo apt-get install ads-tools
+  sudo apt update
+  sudo apt install ads-tools
   ```
 - [Download the latest release](https://github.com/adshares/ads-tools/releases/latest)
 - Clone the repo: `git clone https://github.com/adshares/ads-tools.git`
@@ -35,7 +35,7 @@ Several quick start options are available:
 #### JSON-RPC server
 
 ```
-sudo apt-get install python-pip
+sudo apt install python-pip
 pip install flask flask_jsonrpc waitress requests
 ```
 
