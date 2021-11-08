@@ -8,6 +8,7 @@ import argparse
 import json
 import time
 import requests
+import re
 from subprocess import PIPE, Popen
 from glob import glob
 from random import randint
@@ -408,19 +409,62 @@ def get_gateway_fee(**kwargs):
 
 
 @jsonrpc.method('get_my_ip')
-def get_my_ip():
-	return {'ip': request.headers.get('X-Forwarded-For') or request.environ.get('REMOTE_ADDR')}
+def get_my_ip(**kwargs):
+    validate_params(get_timestamp, kwargs)
+    return {'ip': request.headers.get('X-Forwarded-For') or request.environ.get('REMOTE_ADDR')}
 
 
-# === timestamp command ===
+# === get timestamp command ===
 
 
 @jsonrpc.method('get_timestamp')
-def get_timestamp():
-	return {'timestamp': time.time()}
+def get_timestamp(**kwargs):
+    validate_params(get_timestamp, kwargs)
+    return {'timestamp': time.time()}
+
+
+# === get info command ===
+
+
+@jsonrpc.method('get_info')
+def get_info(**kwargs):
+    validate_params(get_timestamp, kwargs)
+
+    global ads_entrypoint
+    out, err = Popen(ads_entrypoint[:] + ['--version'], stdout=PIPE, stderr=PIPE, universal_newlines=True).communicate()
+    ads_version = err.split("\n")[1][8:]
+
+    out, err = Popen('dpkg -s ads-tools | grep Version', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True).communicate()
+    if out:
+        version = re.search('Version: (.*)-.*', out.split("\n")[0]).group(1)
+    else:
+        out, err = Popen('git describe --tags --always', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True).communicate()
+        version = out.split("\n")[0][1:]
+
+    return {
+        'name': 'ads-json-rpc',
+        'version': version,
+        'description': 'ADS JSON-RPC server',
+        'author': 'Adshares <dev@adshares.net>',
+        'ads_version': ads_version,
+    }
+
+
+# === ping command ===
+
+
+@jsonrpc.method('ping')
+def ping(**kwargs):
+    validate_params(ping, kwargs, optional={'data': String})
+    return {'data': kwargs['data'] if 'data' in kwargs else None}
 
 
 # === end of RPC commands ===
+
+
+def cli(command, data = None):
+    ps = Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    return ps.communicate(data)
 
 
 def run_read_command(command_name, arguments=None):
@@ -434,7 +478,7 @@ def run_write_command(command_name, arguments=None, cmd_args=None):
     return run_command(command_name, arguments, run_get_me=run_get_me, working_dir=ads_transactions_dir)
 
 
-def run_command(command_name, arguments=None, run_get_me=False, working_dir=None):
+def run_command(command_name, arguments=None, working_dir=None, run_get_me=False):
 
     global ads_entrypoint
     ads = ads_entrypoint[:]
