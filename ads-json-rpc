@@ -442,11 +442,13 @@ def get_info(**kwargs):
         version = out.split("\n")[0][1:]
 
     return {
-        'name': 'ads-json-rpc',
-        'version': version,
-        'description': 'ADS JSON-RPC server',
-        'author': 'Adshares <dev@adshares.net>',
-        'ads_version': ads_version,
+        'info':
+            'name': 'ads-json-rpc',
+            'version': version,
+            'description': 'ADS JSON-RPC server',
+            'author': 'Adshares <dev@adshares.net>',
+            'ads_version': ads_version,
+        }
     }
 
 

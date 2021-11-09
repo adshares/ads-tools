@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.4] - 2021-11-09
+### Fixed
+- [JSON-RPC] `get_info` response
+- 
 ## [1.5.3] - 2021-11-08
 ### Added
 - [JSON-RPC] `get_info` method
@@ -153,8 +157,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License
 - Readme
 
-[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.5.3...HEAD
+[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.5.4...HEAD
 
+[1.5.4]: https://github.com/adshares/ads-tools/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/adshares/ads-tools/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/adshares/ads-tools/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/adshares/ads-tools/compare/v1.5.0...v1.5.1
