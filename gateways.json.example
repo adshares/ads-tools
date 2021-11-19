@@ -2,10 +2,12 @@
   {
     "code": "SG1",
     "name": "Swap gate 1",
-    "description": "The best swap gate"
+    "description": "The best swap gate",
     "address": "0001-00000001-8B4E",
     "format": "eth",
     "prefix": "F0E1",
-    "fee_url": "example.com",
+    "chain_id": 1,
+    "contract_address": "0xcfcEcFe2bD2FED07A9145222E8a7ad9Cf1Ccd22A",
+    "fee_url": "example.com"
   }
 ]
