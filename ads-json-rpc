@@ -378,6 +378,8 @@ def get_gateways(**kwargs):
             'address': gateways[code]['address'],
             'format': gateways[code]['format'],
             'prefix': gateways[code]['prefix'],
+            'chain_id': gateways[code]['chain_id'],
+            'contract_address': gateways[code]['contract_address'],
         })
     return {'gateways': items}
 
@@ -442,7 +444,7 @@ def get_info(**kwargs):
         version = out.split("\n")[0][1:]
 
     return {
-        'info':
+        'info': {
             'name': 'ads-json-rpc',
             'version': version,
             'description': 'ADS JSON-RPC server',
@@ -547,6 +549,8 @@ def load_gateways(file):
                     'address': gateway['address'],
                     'format': gateway['format'] if 'format' in gateway else 'eth',
                     'prefix': gateway['prefix'] if 'prefix' in gateway else None,
+                    'chain_id': gateway['chain_id'] if 'chain_id' in gateway else None,
+                    'contract_address': gateway['contract_address'] if 'contract_address' in gateway else None,
                     'fee_url': gateway['fee_url'],
                 }
     except IOError:

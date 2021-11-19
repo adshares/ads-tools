@@ -6,10 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.5] - 2021-11-19
+### Added
+- [JSON-RPC] `get_gateways` returns `chain_id` and `contract_address`
+### Fixed
+- [JSON-RPC] `get_info` response
+
 ## [1.5.4] - 2021-11-09
 ### Fixed
 - [JSON-RPC] `get_info` response
-- 
+
 ## [1.5.3] - 2021-11-08
 ### Added
 - [JSON-RPC] `get_info` method
@@ -157,8 +163,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License
 - Readme
 
-[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.5.4...HEAD
+[Unreleased]: https://github.com/adshares/ads-tools/compare/v1.5.5...HEAD
 
+[1.5.5]: https://github.com/adshares/ads-tools/compare/v1.5.4...v1.5.5
 [1.5.4]: https://github.com/adshares/ads-tools/compare/v1.5.3...v1.5.4
 [1.5.3]: https://github.com/adshares/ads-tools/compare/v1.5.2...v1.5.3
 [1.5.2]: https://github.com/adshares/ads-tools/compare/v1.5.1...v1.5.2
