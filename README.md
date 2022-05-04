@@ -75,6 +75,8 @@ The interactive `ads-service configure` will walk you through the configuration.
 * node identifier
 * node interface (ip)
 
+**!!! WARNING Private key will be stored in plain text in file `$WORKING_DIR/key/key.txt` !!!**
+
 ##### Starting the node
 
 ```bash
