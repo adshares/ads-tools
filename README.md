@@ -8,7 +8,7 @@
     ·
     <a href="https://github.com/adshares/ads-tools/issues/new?template=feature_request.md&labels=New%20Feature">Request feature</a>
     ·
-    <a href="https://github.com/adshares/ads-tools/wiki">Wiki</a>
+    <a href="https://docs.adshares.net/ads/">Docs</a>
   </p>
 </p>
 
@@ -20,19 +20,33 @@ Basic tools for maintenance an ADS blockchain node.
 
 Several quick start options are available:
 
-- Install from Ubuntu PPA (recommended):
-  ```
-  sudo add-apt-repository ppa:adshares/releases
-  sudo apt update
-  sudo apt install ads-tools
-  ```
-- [Download the latest release](https://github.com/adshares/ads-tools/releases/latest)
-- Clone the repo: `git clone https://github.com/adshares/ads-tools.git`
+### Release version (recommended)
 
+```
+sudo add-apt-repository ppa:adshares/releases
+sudo apt-get update
+sudo install ads-tools
+```
 
-### Requirements
+### Snapshot version
 
-#### JSON-RPC server
+```
+sudo add-apt-repository ppa:adshares/snapshots
+sudo apt-get update
+sudo install ads-tools
+```
+
+### Install from Source Code
+
+```
+sudo apt-get install python
+git clone https://github.com/adshares/ads-tools.git
+cd ads-tools
+```
+
+## Requirements
+
+### JSON-RPC server
 
 ```
 sudo apt install python-pip
